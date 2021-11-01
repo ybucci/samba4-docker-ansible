@@ -1,14 +1,19 @@
 ---
 
+# Image who will be used
+SAMBA_IMAGE: yuribucci/samba4-dc:1.0.0_4.14.8
 
-SAMBA_IMAGE: yuribucci/samba-dc:1.0.0
-
+# Directory of mounting shares
 SAMBA_SHARE: /Servidor
 
+# Domain
 SAMBA_DC_REALM: "contoso.local"
 SAMBA_DC_DOMAIN: "CONTOSO"
+
+# Administrator Password
 SAMBA_DC_ADMIN_PASSWD: 'Password1!'
 
+# Use optionals Recyce, Home User or Public Dirs
 SAMBA_RECYCLE: true
 SAMBA_HOME_USER: true
 SAMBA_PUBLIC: true
