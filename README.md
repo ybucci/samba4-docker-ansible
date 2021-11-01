@@ -1,7 +1,7 @@
 # Samba4 AD-DC Ansible Docker container
 
 ## Resume
-This Ansible script, install and configure a single PDC or additionals DCs with Ansible
+This Ansible script, install and configure a single PDC and additionals DCs with Ansible
 
 Suported OS: Ubuntu 21.10
 
