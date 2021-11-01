@@ -1,0 +1,120 @@
+---
+- name: Update apt list
+  apt:
+    update_cache: yes
+
+- name: Upgrade all packages to the latest version
+  apt:
+    name: "*"
+    state: latest
+    update_cache: yes
+  async: 5000
+  poll: 0
+  register: upgrade
+  
+- name: Upgrade all packages to the latest version (Please wait, this will take a while...)
+  async_status:
+    jid: "{{ upgrade.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 2000
+  delay: 10     
+
+- name: Install Required Packages
+  apt:
+    name:
+      - glusterfs-server
+      - glusterfs-client
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: yes
+
+# - name: Install Docker Keyring
+#   ansible.builtin.apt_key:
+#     url: https://download.docker.com/linux/ubuntu/gpg
+#     state: present
+
+# - name: Set Var Release
+#   shell: lsb_release -cs
+#   register: release_ubuntu
+
+# - name: Add Docker GPG apt Key
+#   apt_key:
+#     url: https://download.docker.com/linux/ubuntu/gpg
+#     state: present
+
+# - name: Add Docker Repository
+#   apt_repository:
+#     repo: deb https://download.docker.com/linux/ubuntu {{ release_ubuntu.stdout }} stable
+#     state: present
+
+# - name: Update apt list
+#   apt:
+#     update_cache: yes
+
+- name: Install Docker
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+    state: present
+    update_cache: yes
+
+- name: Enable Docker systemd
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Enable GlusterFS systemd
+  systemd:
+    name: glusterd
+    enabled: yes
+    state: started
+
+- name: Disable firewall ufw
+  systemd:
+    name: ufw
+    enabled: no
+    state: stopped
+
+- name: Disable AppArmor
+  systemd:
+    name: apparmor.service
+    enabled: no
+    state: stopped
+  register: disabled
+  when: distribution == "Ubuntu"
+  ignore_errors: true
+
+- name: Disable AppArmor
+  shell: aa-teardown
+  when: distribution == "Ubuntu"
+  ignore_errors: true
+
+- name: Disable systemd-resolved
+  systemd:
+    name: systemd-resolved
+    enabled: no
+    state: stopped
+
+- name: Reboot host and wait for it to restart
+  reboot:
+    msg: "Reboot initiated by Ansible"
+    connect_timeout: 5
+    reboot_timeout: 600
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: whoami
+  when: disabled.changed
+
+- name: Remove useless packages from the cache
+  apt:
+    autoclean: yes
+
+- name: Remove dependencies that are no longer required
+  apt:
+    autoremove: yes

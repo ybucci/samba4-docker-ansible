@@ -1,0 +1,78 @@
+################# Global Configuration ##################
+# Do not modify!!! unless you know what you're doing
+
+[global]
+        bind interfaces only = Yes
+        interfaces = lo {{ desired_interface_name }}
+        netbios name = {{ inventory_hostname | upper }}
+        realm = {{ SAMBA_DC_REALM | upper }}
+        server role = active directory domain controller
+        workgroup = {{ SAMBA_DC_DOMAIN }}
+        server services = s3fs, rpc, nbt, wrepl, ldap, cldap, kdc, drepl, winbindd, ntp_signd, kcc, dnsupdate
+        {% if ansible_host in groups['masters'] %}idmap_ldb:use rfc2307 = yes{% endif %}
+        {% if SAMBA_RECYCLE %}vfs objects = recycle{% endif %}
+
+{% if SAMBA_RECYCLE %}
+################# Recycle #######################
+
+recycle:keeptree = yes
+recycle:versions = yes
+recycle:repository = /samba/shares/Recycle/%U
+recycle:exclude = *.tmp, *.log, *.obj, ~*.*, *.bak
+recycle:exclude_dir = tmp, cache, profiles
+
+{% endif %}
+################# Default Shares ##################
+# Do not modify!!! unless you know what you're doing
+
+[sysvol]
+        path = /var/lib/samba/sysvol
+        read only = No
+
+[netlogon]
+        path = /var/lib/samba/sysvol/{{ SAMBA_DC_REALM }}/scripts
+        read only = No
+
+{% if SAMBA_RECYCLE %}
+################# Recycle ###################
+
+[Recycle]
+path = /samba/shares/Recycle
+read only = no
+browseable = no
+
+{% endif %}
+################# Custom Shares ###################
+
+### Example share and advanced hiddens ###
+# [Name_of_your_share]
+# path = /Directory/Example
+# read only = no
+# browseable = yes
+
+### hide files start with a dot (.)
+# hide dot files = yes
+
+### hide selected files. example files start with ($)
+# hide files = /$*/
+
+### hide pipes, sockets, devices ...
+# hide special files = yes
+
+### hide files with no read permissions
+# hide unreadable = yes
+
+### hide files with no write permissions
+# hide unwriteable files = yes
+
+{% if SAMBA_PUBLIC %}
+[Public]
+path = /samba/shares/Public
+read only = no
+{% endif %}
+
+{% if SAMBA_HOME_USER %}
+[Users]
+path = /samba/shares/Users
+read only = no
+{% endif %}

@@ -1,0 +1,67 @@
+---
+
+- hosts: all
+  gather_facts: true
+  vars:
+    desired_interface_name: ""
+    target_interface_name: "{{ ansible_host }}"
+
+  tasks:
+    - name: parse interfaces
+      set_fact:
+        desired_interface_name="{{ item }}"
+      when: hostvars[inventory_hostname]['ansible_{{item}}']['ipv4']['address'] == target_interface_name
+      with_items:
+        - "{{ ansible_interfaces }}"
+      tags: install
+
+- hosts: all
+  gather_facts: yes
+  vars:
+    distribution: "{{ hostvars[inventory_hostname].ansible_distribution }}"
+    release: "{{ hostvars[inventory_hostname].ansible_distribution_release }}"
+  roles:
+    - { role: bootstrap, tags: init }
+
+- hosts: masters:dc
+  gather_facts: yes
+  roles:
+    - { role: samba4/hosts, tags: hosts }
+    - { role: samba4/sysvol, tags: sysvol }
+
+- hosts: all
+  gather_facts: yes
+  roles:
+    - { role: samba4/install, tags: install }
+    - { role: samba4/addons, tags: addons }
+
+
+# - hosts: fileserver
+#   gather_facts: yes
+#   roles:
+#     - { role: samba4/fileserver/member, tags: [ 'member', 'memberfs' ] }
+
+# - { role: samba4/fileserver/dc, tags: [ 'fileserver', 'dc' ] }
+
+# - hosts: fileserver
+#   gather_facts: yes
+#   roles:
+#     - { role: samba4/fileserver/member_dirs, tags: [ 'member', 'member_dirs' ] }
+
+# - hosts: masters
+#   gather_facts: no
+#   tasks:
+#     - name: Update DNS
+#       shell: "samba_dnsupdate --all-names --verbose"
+
+
+# - hosts: all
+#   gather_facts: yes
+#   roles:
+#     - { role: samba4/audit, tags: [ 'audit', 'masters', 'dc', 'member' ] }
+
+# - hosts: masters
+#   gather_facts: yes
+#   roles:
+#     - { role: samba4/configuration/dns, tags: [ 'configs_dns', 'masters' ] }
+#     - { role: samba4/configuration/group_policies, tags: [ 'gpo', 'masters' ] }

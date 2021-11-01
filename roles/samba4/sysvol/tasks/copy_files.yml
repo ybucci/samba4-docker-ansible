@@ -1,0 +1,9 @@
+- name: Synchronize passing in extra rsync options
+  synchronize:
+    src: /var/lib/samba/sysvol/
+    dest: /Sysvol/
+    rsync_opts:
+      - "--xattrs"
+      - "--perms"
+      - "--acls"
+  delegate_to: "{{ inventory_hostname }}"

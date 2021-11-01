@@ -1,0 +1,4 @@
+---
+
+- name: Samba | Addons
+  include_tasks: addons.yml

@@ -1,0 +1,8 @@
+---
+
+- set_fact:
+    distribution: "{{ hostvars[inventory_hostname].ansible_distribution }}"
+    release: "{{ hostvars[inventory_hostname].ansible_distribution_release }}"
+
+- include_tasks: ubuntu.yml
+  when: distribution == "Ubuntu"

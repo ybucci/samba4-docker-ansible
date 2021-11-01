@@ -1,0 +1,14 @@
+---
+
+
+SAMBA_IMAGE: yuribucci/samba-dc:1.0.0
+
+SAMBA_SHARE: /Servidor
+
+SAMBA_DC_REALM: "contoso.local"
+SAMBA_DC_DOMAIN: "CONTOSO"
+SAMBA_DC_ADMIN_PASSWD: 'Password1!'
+
+SAMBA_RECYCLE: true
+SAMBA_HOME_USER: true
+SAMBA_PUBLIC: true

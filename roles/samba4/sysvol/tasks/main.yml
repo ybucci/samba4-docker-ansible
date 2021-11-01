@@ -1,0 +1,21 @@
+- name: Apply GlusterD volume configuration
+  template:
+    src: glusterd.vol.j2
+    dest: /etc/glusterfs/glusterd.vol
+
+- name: Enable and start service Gluster
+  systemd:
+    name: glusterd.service
+    enabled: yes
+    state: restarted
+
+- name: Samba | Sysvol Replication
+  include_tasks: gluster-master.yml
+  when: inventory_hostname in groups.masters
+
+- name: Samba | Sysvol Replication
+  include_tasks: gluster-all.yml
+
+# - name: Samba | Sysvol Replication
+#   include_tasks: copy_files.yml
+#   when: inventory_hostname in groups.masters

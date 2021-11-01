@@ -1,0 +1,23 @@
+- name: Hosts | create list from inventory
+  set_fact:
+    etc_hosts_inventory_block: |-
+      {% for item in (groups['masters'] + groups['dc'] + groups['fileserver']|default([]))|unique -%}
+      {% if 'access_ip' in hostvars[item] or 'ip' in hostvars[item] or 'ansible_default_ipv4' in hostvars[item] -%}
+      {{ hostvars[item]['access_ip'] | default(hostvars[item]['ip'] | default(hostvars[item]['ansible_default_ipv4']['address'])) }}
+      {%- if ('ansible_hostname' in hostvars[item] and item != hostvars[item]['ansible_hostname']) %} {% endif %} {{ item }}.{{ SAMBA_DC_REALM }} {{ item }}
+      {% endif %}
+      {% endfor %}
+  delegate_to: localhost
+  connection: local
+  delegate_facts: yes
+  run_once: yes
+
+- name: Hosts - populate inventory into hosts file
+  blockinfile:
+    path: /etc/hosts
+    block: "{{ hostvars.localhost.etc_hosts_inventory_block }}"
+    state: present
+    create: yes
+    backup: yes
+    unsafe_writes: yes
+    marker: "# Samba 4 {mark}"

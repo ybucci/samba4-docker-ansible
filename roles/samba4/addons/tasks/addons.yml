@@ -1,0 +1,108 @@
+- name: Add samba-tool on host
+  shell: echo 'docker exec -it samba-pdc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+  when: inventory_hostname in groups['masters']
+
+- name: Add samba-tool on host
+  shell: echo 'docker exec -it samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+  when: inventory_hostname in groups['dc']
+
+- name: Create DNS Reverse Zone
+  shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    samba-tool dns zonecreate $IP $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} --workgroup={{ SAMBA_DC_DOMAIN|upper }}
+  ignore_errors: true
+  when: inventory_hostname in groups['masters']
+
+- name: Create DNS PTR
+  shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    samba-tool dns add $IP $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} $4 PTR "{{ inventory_hostname }}"."{{ SAMBA_DC_REALM }}"
+  ignore_errors: true
+  when: inventory_hostname in groups['dc']
+
+- name: Create Home Users Directory
+  file:
+    path: "{{ SAMBA_SHARE }}/Users"
+    state: directory
+  when: SAMBA_HOME_USER is defined
+
+- name: Create Public Directory
+  file:
+    path: "{{ SAMBA_SHARE }}/Public"
+    state: directory
+  when: SAMBA_PUBLIC is defined
+
+- name: Create Recycle Directory
+  file:
+    path: "{{ SAMBA_SHARE }}/Recycle"
+    state: directory
+  when: SAMBA_RECYCLE is defined
+
+###
+
+- name: Chown Folders
+  community.docker.docker_container_exec:
+    container: samba-pdc
+    command: /bin/bash -c 'chown root:"Domain Admins" /samba/shares/*'
+  register: result
+  when: inventory_hostname in groups['masters']
+
+- name: Chown Folders
+  community.docker.docker_container_exec:
+    container: samba-dc
+    command: /bin/bash -c 'chown root:"Domain Admins" /samba/shares/*'
+  register: result
+  when: inventory_hostname in groups['dc']
+
+###
+
+- name: Set ACL of Home Users Folder
+  community.docker.docker_container_exec:
+    container: samba-pdc
+    command: /bin/bash -c 'samba-tool ntacl set "O:LAG:DAD:PAI(A;OICI;0x001f01ff;;;LA)(A;OICI;0x001f01ff;;;DA)(A;OICIIO;0x001f01ff;;;CO)(A;;0x001200a9;;;DU)" /samba/shares/Users'
+  register: result
+  when: inventory_hostname in groups['masters'] and SAMBA_HOME_USER is defined
+
+- name: Set ACL of Home Users Folder
+  community.docker.docker_container_exec:
+    container: samba-dc
+    command: /bin/bash -c 'samba-tool ntacl set "O:LAG:DAD:PAI(A;OICI;0x001f01ff;;;LA)(A;OICI;0x001f01ff;;;DA)(A;OICIIO;0x001f01ff;;;CO)(A;;0x001200a9;;;DU)" /samba/shares/Users'
+  register: result
+  when: inventory_hostname in groups['dc'] and SAMBA_HOME_USER is defined
+
+############
+
+
+- name: Set ACL of Public Folder
+  community.docker.docker_container_exec:
+    container: samba-pdc
+    command: /bin/bash -c 'samba-tool ntacl set "O:LAG:DAD:PAI(A;;0x001f01ff;;;LA)(A;;0x001f01ff;;;DA)(A;OICIIO;0x001301bf;;;CO)(A;OICIIO;0x001301bf;;;CG)(A;OICI;0x001301bf;;;DU)" /samba/shares/Public'
+  register: result
+  when: inventory_hostname in groups['masters'] and SAMBA_PUBLIC is defined
+
+- name: Set ACL of Public Folder
+  community.docker.docker_container_exec:
+    container: samba-dc
+    command: /bin/bash -c 'samba-tool ntacl set "O:LAG:DAD:PAI(A;;0x001f01ff;;;LA)(A;;0x001f01ff;;;DA)(A;OICIIO;0x001301bf;;;CO)(A;OICIIO;0x001301bf;;;CG)(A;OICI;0x001301bf;;;DU)" /samba/shares/Public'
+  register: result
+  when: inventory_hostname in groups['dc'] and SAMBA_PUBLIC is defined
+
+####
+
+- name: Set ACL of Recycle Folder
+  community.docker.docker_container_exec:
+    container: samba-pdc
+    command: /bin/bash -c 'samba-tool ntacl set "O:LAG:DAD:PAI(A;OICI;0x001f01ff;;;LA)(A;OICI;0x001f01ff;;;DA)(A;OICIIO;0x001f01ff;;;CO)(A;;0x001201bd;;;DU)" /samba/shares/Recycle'
+  register: result
+  when: inventory_hostname in groups['masters'] and SAMBA_RECYCLE is defined
+
+- name: Set ACL of Recycle Folder
+  community.docker.docker_container_exec:
+    container: samba-dc
+    command: /bin/bash -c 'samba-tool ntacl set "O:LAG:DAD:PAI(A;OICI;0x001f01ff;;;LA)(A;OICI;0x001f01ff;;;DA)(A;OICIIO;0x001f01ff;;;CO)(A;;0x001201bd;;;DU)" /samba/shares/Recycle'
+  register: result
+  when: inventory_hostname in groups['dc'] and SAMBA_RECYCLE is defined

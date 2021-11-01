@@ -1,0 +1,151 @@
+- name: Update facts
+  setup:
+    gather_subset: min    
+
+- name: Restart Docker
+  systemd:
+    name: docker
+    state: restarted
+
+- name: Pull Docker image
+  docker_image:
+    name: "{{ SAMBA_IMAGE }}"
+    source: pull
+  retries: 5
+  delay: 3
+
+- name: Remove old resolv.conf
+  file:
+    path: /etc/resolv.conf
+    state: absent
+
+- name: Apply new resolv.conf
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+
+- name: Create Samba Container
+  docker_container:
+    name: samba-pdc
+    image: "{{ SAMBA_IMAGE }}"
+    state: started
+    recreate: yes
+    network_mode: host
+    privileged: yes
+    hostname: "{{ inventory_hostname }}.{{ SAMBA_DC_REALM }}"
+    env:
+      SAMBA_DC_REALM: "{{ SAMBA_DC_REALM }}"
+      SAMBA_DC_ADMIN_PASSWD: "{{ SAMBA_DC_ADMIN_PASSWD }}"
+      SAMBA_DC_ACTION: provision
+      SAMBA_DC_DOMAIN: "{{ SAMBA_DC_DOMAIN }}"
+      SAMBA_INTERFACE: "{{ desired_interface_name }}"
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/lib/samba:/var/lib/samba
+      - /Sysvol:/var/lib/samba/sysvol
+      - /etc/samba:/etc/samba
+      - /var/log/samba:/var/log/samba
+      - "{{ SAMBA_SHARE }}:/samba/shares"
+  when: inventory_hostname in groups.masters
+
+- name: Wait 20 seconds to continue
+  pause:
+    seconds: 20
+
+- name: Create Samba Container
+  docker_container:
+    name: samba-dc
+    image: "{{ SAMBA_IMAGE }}"
+    state: started
+    recreate: yes
+    network_mode: host
+    privileged: yes
+    hostname: "{{ inventory_hostname }}.{{ SAMBA_DC_REALM }}"
+    env:
+      SAMBA_DC_REALM: "{{ SAMBA_DC_REALM }}"
+      SAMBA_DC_ADMIN_PASSWD: "{{ SAMBA_DC_ADMIN_PASSWD }}"
+      SAMBA_DC_ACTION: join
+      SAMBA_DC_DOMAIN: "{{ SAMBA_DC_DOMAIN }}"
+      SAMBA_INTERFACE: "{{ desired_interface_name }}"
+      SAMBA_DC_MASTER: "{{ hostvars[groups['masters'][0]]['ansible_host'] }}"
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/lib/samba:/var/lib/samba
+      - /Sysvol:/var/lib/samba/sysvol
+      - /etc/samba:/etc/samba
+      - /var/log/samba:/var/log/samba
+      - "{{ SAMBA_SHARE }}:/samba/shares"
+  when: inventory_hostname in groups.dc
+
+- name: Wait 20 seconds to continue
+  pause:
+    seconds: 20
+
+- name: Apply new resolv.conf
+  template:
+    src: resolv2conf.j2
+    dest: /etc/resolv.conf
+
+- name: Backup idmap
+  community.docker.docker_container_exec:
+    container: samba-pdc
+    command: /bin/bash -c "tdbbackup -s .bak /var/lib/samba/private/idmap.ldb"
+  register: result
+  when: inventory_hostname in groups['masters']
+
+- name: Copy idpmap to DCs
+  run_once: yes
+  fetch: src=/var/lib/samba/private/idmap.ldb.bak dest=buffer/ flat=yes
+  when: inventory_hostname in groups['masters']
+
+- name: Copy idpmap to DCs
+  copy: src=buffer/idmap.ldb.bak dest=/var/lib/samba/private/idmap.ldb
+  when: inventory_hostname in groups['dc']
+  retries: 5
+  delay: 3
+
+- name: Restart container samba-dc
+  shell: docker restart samba-dc
+  when: inventory_hostname in groups['dc']
+
+- name: Wait 20 seconds to continue
+  pause:
+    seconds: 20
+
+- name: Restart container samba-dc
+  shell: docker restart samba-dc
+  when: inventory_hostname in groups['dc']
+
+- name: Wait 10 seconds to continue
+  pause:
+    seconds: 10
+
+- name: Reset Sysvol
+  community.docker.docker_container_exec:
+    container: samba-pdc
+    command: /bin/bash -c "samba-tool ntacl sysvolreset"
+  register: result
+  when: inventory_hostname in groups['masters']
+
+- name: Apply smb.conf
+  template:
+    src: smb.conf.j2
+    dest: /etc/samba/smb.conf
+
+- name: Restart container samba-pdc
+  shell: docker restart samba-pdc
+  when: inventory_hostname in groups['masters']
+
+- name: Wait 10 seconds to continue
+  pause:
+    seconds: 10
+
+- name: Restart container samba-dc
+  shell: docker restart samba-dc
+  when: inventory_hostname in groups['dc']
+
+- name: Wait 10 seconds to continue
+  pause:
+    seconds: 10
