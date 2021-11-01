@@ -10,14 +10,12 @@ Suported OS: Ubuntu 21.10
 
 ```
 $ apt-get install ansible
-
 ```
 
 ## Clone Repository
 
 ```
 $ git clone https://github.com/YuriBucci2/samba4-docker-ansible.git
-
 ```
 ## Edit inventory and hosts
 ```
