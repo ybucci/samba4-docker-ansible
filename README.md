@@ -10,6 +10,7 @@ Suported OS: Ubuntu 21.10
 
 ```
 $ apt-get install ansible git sshpass
+$ ansible-galaxy collection install community.docker
 ```
 
 ## Clone Repository
