@@ -9,7 +9,7 @@ Suported OS: Ubuntu 21.10
 ## Install Ansible
 
 ```
-$ apt-get install ansible
+$ apt-get install ansible git sshpass
 ```
 
 ## Clone Repository
