@@ -80,6 +80,7 @@
     name: ufw
     enabled: no
     state: stopped
+  ignore_errors: true
 
 - name: Disable AppArmor
   systemd:
