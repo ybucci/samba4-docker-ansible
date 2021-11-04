@@ -7,17 +7,22 @@
     name: docker
     state: restarted
 
+- name: Remove old resolv.conf
+  file:
+    path: /etc/resolv.conf
+    state: absent
+
+- name: Apply new resolv.conf
+  template:
+    src: resolv3.conf.j2
+    dest: /etc/resolv.conf
+
 - name: Pull Docker image
   docker_image:
     name: "{{ SAMBA_IMAGE }}"
     source: pull
   retries: 5
   delay: 3
-
-- name: Remove old resolv.conf
-  file:
-    path: /etc/resolv.conf
-    state: absent
 
 - name: Apply new resolv.conf
   template:
@@ -49,9 +54,9 @@
       - "{{ SAMBA_SHARE }}:/samba/shares"
   when: inventory_hostname in groups.masters
 
-- name: Wait 20 seconds to continue
+- name: Wait 60 seconds to continue
   pause:
-    seconds: 20
+    seconds: 60
 
 - name: Create Samba Container
   docker_container:
@@ -79,9 +84,9 @@
       - "{{ SAMBA_SHARE }}:/samba/shares"
   when: inventory_hostname in groups.dc
 
-- name: Wait 20 seconds to continue
+- name: Wait 40 seconds to continue
   pause:
-    seconds: 20
+    seconds: 40
 
 - name: Apply new resolv.conf
   template:
@@ -110,17 +115,17 @@
   shell: docker restart samba-dc
   when: inventory_hostname in groups['dc']
 
-- name: Wait 20 seconds to continue
+- name: Wait 40 seconds to continue
   pause:
-    seconds: 20
+    seconds: 40
 
 - name: Restart container samba-dc
   shell: docker restart samba-dc
   when: inventory_hostname in groups['dc']
 
-- name: Wait 10 seconds to continue
+- name: Wait 15 seconds to continue
   pause:
-    seconds: 10
+    seconds: 15
 
 - name: Reset Sysvol
   community.docker.docker_container_exec:
@@ -138,14 +143,14 @@
   shell: docker restart samba-pdc
   when: inventory_hostname in groups['masters']
 
-- name: Wait 10 seconds to continue
+- name: Wait 15 seconds to continue
   pause:
-    seconds: 10
+    seconds: 15
 
 - name: Restart container samba-dc
   shell: docker restart samba-dc
   when: inventory_hostname in groups['dc']
 
-- name: Wait 10 seconds to continue
+- name: Wait 15 seconds to continue
   pause:
-    seconds: 10
+    seconds: 15
