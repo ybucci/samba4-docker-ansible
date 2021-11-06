@@ -1,0 +1,28 @@
+---
+
+- name: Create DNS Reverse Zone
+  shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    docker exec -i samba-pdc samba-tool dns zonecreate $IP $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} --workgroup={{ SAMBA_DC_DOMAIN|upper }}
+  ignore_errors: true
+  when: inventory_hostname in groups['masters']
+
+- name: Create DNS PTR
+  shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    docker exec -i samba-pdc samba-tool dns add $IP $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} $4 PTR "{{ inventory_hostname }}"."{{ SAMBA_DC_REALM }}"
+  ignore_errors: true
+  when: inventory_hostname in groups['masters']
+
+- name: Create DNS PTR
+  shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    docker exec -i samba-dc samba-tool dns add $IP $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} $4 PTR "{{ inventory_hostname }}"."{{ SAMBA_DC_REALM }}"
+  ignore_errors: true
+  when: inventory_hostname in groups['dc']

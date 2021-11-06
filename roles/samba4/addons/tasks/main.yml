@@ -1,4 +1,15 @@
 ---
 
-- name: Samba | Addons
-  include_tasks: addons.yml
+- name: Add samba-tool on host
+  shell: echo 'docker exec -it samba-pdc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+  when: inventory_hostname in groups['masters']
+
+- name: Add samba-tool on host
+  shell: echo 'docker exec -it samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+  when: inventory_hostname in groups['dc']
+
+- name: Samba | Addons | DNS
+  include_tasks: dns.yml
+
+- name: Samba | Addons | Fileserver
+  include_tasks: fileserver.yml
