@@ -1,4 +1,21 @@
 ---
+
+- name: Disable systemd-resolved
+  systemd:
+    name: systemd-resolved
+    enabled: no
+    state: stopped
+
+- name: Remove old resolv.conf
+  file:
+    path: /etc/resolv.conf
+    state: absent
+
+- name: Apply new resolv.conf
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+
 - name: Update apt list
   apt:
     update_cache: yes
@@ -94,22 +111,6 @@
   shell: aa-teardown
   when: distribution == "Ubuntu"
   ignore_errors: true
-
-- name: Disable systemd-resolved
-  systemd:
-    name: systemd-resolved
-    enabled: no
-    state: stopped
-
-- name: Remove old resolv.conf
-  file:
-    path: /etc/resolv.conf
-    state: absent
-
-- name: Apply new resolv.conf
-  template:
-    src: resolv.conf.j2
-    dest: /etc/resolv.conf
 
 - name: Reboot host and wait for it to restart
   reboot:
