@@ -26,5 +26,5 @@ inventory/servers/group_vars/all/all.yml
 
 ## Run Playbook
 ```
-$ ansible-playbook -i inventory/servers/hosts.ini install.yml
+$ ansible-playbook --become -i inventory/servers/hosts.ini install.yml
 ```
