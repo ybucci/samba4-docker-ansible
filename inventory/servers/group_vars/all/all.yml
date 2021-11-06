@@ -17,3 +17,24 @@ SAMBA_DC_ADMIN_PASSWD: 'Password1!'
 SAMBA_RECYCLE: true
 SAMBA_HOME_USER: true
 SAMBA_PUBLIC: true
+
+# The password complexity (on | off) | Default is 'on'
+SAMBA_PWD_COMPLEXITY: on
+
+# The password history length <integer>. | Default is 24.
+SAMBA_PWD_HISTORY_LENGHT: 24
+
+# The minimum password length <integer> | Default is 7.
+SAMBA_PWD_MIN_LENGHT: 7
+
+# The minimum password age <integer in days> | Default is 1.
+SAMBA_PWD_MIN_AGE: 1
+
+# The maximum password age <integer in days> | Default is 43.
+SAMBA_PWD_MAX_AGE: 43
+
+# The the length of time an account is locked out after exeeding the limit on bad password attempts <integer in mins> | Default is 30 mins.
+SAMBA_ACC_LOCKOUT_DURATION: 30
+
+# The number of bad password attempts allowed before locking out the account <integer> | Default is 0 (never lock out).
+SAMBA_ACC_LOCKOUT_THRESHOLD: 0

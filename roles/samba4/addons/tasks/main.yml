@@ -1,11 +1,11 @@
 ---
 
 - name: Add samba-tool on host
-  shell: echo 'docker exec -it samba-pdc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+  shell: echo 'docker exec -i samba-pdc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
   when: inventory_hostname in groups['masters']
 
 - name: Add samba-tool on host
-  shell: echo 'docker exec -it samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+  shell: echo 'docker exec -i samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
   when: inventory_hostname in groups['dc']
 
 - name: Samba | Addons | DNS
@@ -13,3 +13,6 @@
 
 - name: Samba | Addons | Fileserver
   include_tasks: fileserver.yml
+
+- name: Samba | Addons | Passwords
+  include_tasks: passwords.yml
