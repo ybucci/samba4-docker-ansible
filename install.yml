@@ -13,7 +13,7 @@
       when: hostvars[inventory_hostname]['ansible_{{item}}']['ipv4']['address'] == target_interface_name
       with_items:
         - "{{ ansible_interfaces }}"
-      tags: install
+      tags: [ 'install', 'init', 'hosts', 'sysvol', 'addons' ]
 
 - hosts: all
   gather_facts: yes
