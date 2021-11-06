@@ -7,7 +7,6 @@
   apt:
     name: "*"
     state: latest
-    update_cache: yes
   async: 5000
   poll: 0
   register: upgrade
@@ -101,6 +100,16 @@
     name: systemd-resolved
     enabled: no
     state: stopped
+
+- name: Remove old resolv.conf
+  file:
+    path: /etc/resolv.conf
+    state: absent
+
+- name: Apply new resolv.conf
+  template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
 
 - name: Reboot host and wait for it to restart
   reboot:

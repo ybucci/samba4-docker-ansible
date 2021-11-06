@@ -1,8 +1,1 @@
-domain {{ SAMBA_DC_REALM }}
-{% for host in groups['masters'] %}
-nameserver {{ hostvars[host].ansible_host }}
-{% endfor %}
-{% for host in groups['dc'] %}
-nameserver {{ hostvars[host].ansible_host }}
-{% endfor %}
 nameserver 8.8.8.8

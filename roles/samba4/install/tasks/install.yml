@@ -7,16 +7,6 @@
     name: docker
     state: restarted
 
-- name: Remove old resolv.conf
-  file:
-    path: /etc/resolv.conf
-    state: absent
-
-- name: Apply new resolv.conf
-  template:
-    src: resolv3.conf.j2
-    dest: /etc/resolv.conf
-
 - name: Pull Docker image
   docker_image:
     name: "{{ SAMBA_IMAGE }}"
