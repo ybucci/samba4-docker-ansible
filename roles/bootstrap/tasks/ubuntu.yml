@@ -45,6 +45,7 @@
       - curl
       - gnupg
       - lsb-release
+      - tdb-tools
     state: present
     update_cache: yes
 
