@@ -51,9 +51,9 @@ SAMBA_VEEAM_BACKUP:
   SEND_EMAIL:
     ENABLED: true
     EMAIL_SMTP: 'smtp.gmail.com:587'
-    EMAIL_FROM: 'yurifilipebucci@gmail.com'
-    EMAIL_TO: 'yurifilipebucci@gmail.com'
-    EMAIL_PASSWORD: 'Yfb1992**'
+    EMAIL_FROM: 'email@gmail.com'
+    EMAIL_TO: 'email@gmail.com'
+    EMAIL_PASSWORD: 'Password1!'
   # ATENTION! BACKUP LOCATION CANNOT BE ON THE SANE DISK
   BACKUP_LOCATION: '/boot'
   # Backup retention in days
