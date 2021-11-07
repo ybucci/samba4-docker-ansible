@@ -1,0 +1,20 @@
+# name of the veeam backup job as set in veeam!
+JOBNAME="{{ inventory_hostname }}-FILESERVER-BACKUP"
+# the sender email address
+EMAILFROM="{{ SAMBA_VEEAM_BACKUP.SEND_EMAIL.EMAIL_FROM}}"
+# receiver email address
+EMAILTO="{{ SAMBA_VEEAM_BACKUP.SEND_EMAIL.EMAIL_TO}}"
+EMAIL_PASSWORD="{{ SAMBA_VEEAM_BACKUP.SEND_EMAIL.EMAIL_PASSWORD}}"
+SMTP="{{ SAMBA_VEEAM_BACKUP.SEND_EMAIL.EMAIL_SMTP}}"
+
+# directory of mail template file
+HTMLTEMPLATE="/etc/veeam/c"
+# if curl is installed vee-mail may check for new version if set to 1
+SKIPVERSIONCHECK=0
+# if you backup to a smb-share fill in your credentials to get infos about free backup space
+SMBUSER=""
+SMBPWD=""
+# infomail: 1=always, 2=warning only, 3=error only
+INFOMAIL=1
+# if set to 1 get more debug output on script run
+DEBUG=0

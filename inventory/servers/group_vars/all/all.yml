@@ -38,3 +38,57 @@ SAMBA_ACC_LOCKOUT_DURATION: 30
 
 # The number of bad password attempts allowed before locking out the account <integer> | Default is 0 (never lock out).
 SAMBA_ACC_LOCKOUT_THRESHOLD: 0
+
+# Directory where backups will be saved (Only Domain Backup)
+SAMBA_BACKUP_DIR: /Servidor/Backup
+
+# Retetion in days of backup (Only Domain Backup)
+SAMBA_BACKUP_RETENTION: 90
+
+# Veaam for backup FileServer
+SAMBA_VEEAM_BACKUP:
+  ENABLED: true
+  SEND_EMAIL:
+    ENABLED: true
+    EMAIL_SMTP: 'smtp.gmail.com:587'
+    EMAIL_FROM: 'yurifilipebucci@gmail.com'
+    EMAIL_TO: 'yurifilipebucci@gmail.com'
+    EMAIL_PASSWORD: 'Yfb1992**'
+  # ATENTION! BACKUP LOCATION CANNOT BE ON THE SANE DISK
+  BACKUP_LOCATION: '/boot'
+  # Backup retention in days
+  BACKUP_RETENTION: 7
+  ENCRYPTION:
+    ENABLED: true
+    PASSWORD: 'Password1!'  
+  BACKUP_SCHEDULE:
+    HOUR: 20
+    MINUTE: 00
+    MONDAY: true
+    TUESDAY: true
+    WEDNESDAY: true
+    THURSDAY: true
+    FRIDAY: true
+    SATURDAY: true
+    SUNDAY: false
+  BACKUP_FULL:
+    ENABLED: true
+    # month or week
+    TYPE: month
+    MONTH_DAY: 1
+    WEEK_DAY:
+      MONDAY: false
+      TUESDAY: false
+      WEDNESDAY: false
+      THURSDAY: false
+      FRIDAY: false
+      SATURDAY: false
+      SUNDAY: true
+
+
+
+      
+  
+
+  
+  

@@ -48,28 +48,33 @@
     state: present
     update_cache: yes
 
-# - name: Install Docker Keyring
-#   ansible.builtin.apt_key:
-#     url: https://download.docker.com/linux/ubuntu/gpg
-#     state: present
+- name: Install Veeam Backup Agent Repository
+  apt:
+    deb: https://download2.veeam.com/veeam-release-deb_1.0.8_amd64.deb
+  when: SAMBA_VEEAM_BACKUP.ENABLED
 
-# - name: Set Var Release
-#   shell: lsb_release -cs
-#   register: release_ubuntu
+- name: Update apt list
+  apt:
+    update_cache: yes
+  when: SAMBA_VEEAM_BACKUP.ENABLED
 
-# - name: Add Docker GPG apt Key
-#   apt_key:
-#     url: https://download.docker.com/linux/ubuntu/gpg
-#     state: present
+- name: Install Veeam Backup Agent Repository
+  apt:
+    deb: https://download2.veeam.com/veeam-release-deb_1.0.8_amd64.deb
+  when: SAMBA_VEEAM_BACKUP.ENABLED
 
-# - name: Add Docker Repository
-#   apt_repository:
-#     repo: deb https://download.docker.com/linux/ubuntu {{ release_ubuntu.stdout }} stable
-#     state: present
-
-# - name: Update apt list
-#   apt:
-#     update_cache: yes
+- name: Install Veeam Backup Agent
+  apt:
+    name:
+      - veeam
+      - sendemail
+      - libnet-ssleay-perl
+      - libcrypt-ssleay-perl
+      - libssl-dev
+      - libio-socket-ssl-perl
+    state: present
+    update_cache: yes
+  when: SAMBA_VEEAM_BACKUP.ENABLED
 
 - name: Install Docker
   apt:

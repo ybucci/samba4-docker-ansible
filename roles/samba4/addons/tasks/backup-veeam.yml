@@ -1,0 +1,38 @@
+
+- name: Touch Veeam Eula
+  shell: touch /usr/share/doc/veeam/EULA && touch /usr/share/doc/veeam/3rdPartyNotices.txt
+
+- name: Accept Veeam Agreement
+  shell: veeamconfig agreement acceptEula && veeamconfig agreement acceptThirdPartyLicenses
+
+- name: Create Veeam Repository
+  shell: veeamconfig repository create --name Local_Driver --location local
+  ignore_errors: yes
+
+- name: Copy backup xml template
+  template:
+    src: veeam_template.xml.j2
+    dest: "/tmp/veeam_template.xml"
+  when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
+
+- name: Copy email report html
+  copy:
+    src: vee_mail_template.html
+    dest: "/etc/veeam/vee_mail_template.html"
+  when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
+
+- name: Copy script config email report
+  template:
+    src: vee-mail.config.j2
+    dest: "/etc/veeam/vee-mail.config"
+  when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
+
+- name: Copy script email report
+  copy:
+    src: vee-mail.sh
+    dest: "/etc/veeam/vee-mail.sh"
+    mode: u=rwx,g=rwx,o=x
+  when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
+
+- name: Import backup template
+  shell: veeamconfig config import --file /tmp/veeam_template.xml --force

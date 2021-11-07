@@ -16,3 +16,10 @@
 
 - name: Samba | Addons | Passwords
   include_tasks: passwords.yml
+
+- name: Samba | Addons | Passwords
+  include_tasks: backup.yml
+
+# - name: Samba | Addons | Veeam Backup
+#   include_tasks: backup-veeam.yml
+#   when: SAMBA_VEEAM_BACKUP.ENABLED
