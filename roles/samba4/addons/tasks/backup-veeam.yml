@@ -28,8 +28,8 @@
   when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
 
 - name: Copy script email report
-  copy:
-    src: vee-mail.sh
+  template:
+    src: vee-mail.sh.j2
     dest: "/etc/veeam/vee-mail.sh"
     mode: u=rwx,g=rwx,o=x
   when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
