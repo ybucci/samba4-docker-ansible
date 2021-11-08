@@ -3,7 +3,7 @@
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?business=EY4D8EFD6BLMJ&no_recurring=0&item_name=Projeto+Open+Source&currency_code=BRL)
 <p></p>
 
-# Samba4 AD-DC Ansible Docker container
+# Deploy a production ready Samba4 in Docker
 
 [![GPL Licence](https://badges.frapsoft.com/os/gpl/gpl.png?v=103)](https://opensource.org/licenses/GPL-3.0/) [![Open Source Love svg1](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://opensource.org/) [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://docker.com/) [![Linux](https://svgshare.com/i/Zhy.svg)](https://ubuntu.com/) 
 
