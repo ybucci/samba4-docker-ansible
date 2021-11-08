@@ -2,6 +2,11 @@
   setup:
     gather_subset: min    
 
+- name: Check if Samba Already installed
+  stat:
+    path: /var/lib/samba
+  register: samba_directory
+
 - name: Restart Docker
   systemd:
     name: docker
@@ -128,6 +133,7 @@
   template:
     src: smb.conf.j2
     dest: /etc/samba/smb.conf
+  when: not samba_directory.stat.exists
 
 - name: Restart container samba-pdc
   shell: docker restart samba-pdc
