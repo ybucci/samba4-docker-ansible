@@ -33,15 +33,15 @@ This Ansible automation will install and configure multiple Domain Controllers (
 - **Member FileServer**
 - **???**
 
-### How to
+## How to
 
-#### Requirements
+### Requirements
 
 ```
 $ apt-get install ansible git sshpass
 $ ansible-galaxy collection install community.docker
 ```
-#### Clone Repository
+### Clone Repository
 
 
 
@@ -49,13 +49,13 @@ $ ansible-galaxy collection install community.docker
 ```
 $ git clone https://github.com/YuriBucci2/samba4-docker-ansible.git
 ```
-#### Edit inventory and hosts
+### Edit inventory and hosts
 ```
 inventory/servers/hosts.ini
 inventory/servers/group_vars/all/all.yml
 ```
 
-#### Run Playbook
+### Run Playbook
 ```
 $ ansible-playbook --become -i inventory/servers/hosts.ini install.yml
 ```
