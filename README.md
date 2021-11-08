@@ -11,7 +11,7 @@
 
 
 
-This Ansible automation will install and configure multiple Domain Controllers (DCs) using technologies like Docker, GlusteFS, Veaam and Samba4.
+This Ansible automation will install and configure multiple Domain Controllers (DCs) using technologies like Samba4, Ansible, Docker, GlusteFS and Veeam.
 
 ## Resources
 
