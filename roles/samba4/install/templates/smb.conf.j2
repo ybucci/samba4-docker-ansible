@@ -10,7 +10,7 @@
         workgroup = {{ SAMBA_DC_DOMAIN }}
         server services = s3fs, rpc, nbt, wrepl, ldap, cldap, kdc, drepl, winbindd, ntp_signd, kcc, dnsupdate
         {% if ansible_host in groups['masters'] %}idmap_ldb:use rfc2307 = yes{% endif %}
-        {% if SAMBA_RECYCLE %}vfs objects = recycle{% endif %}
+{% if SAMBA_RECYCLE %}vfs objects = recycle{% endif %}
 
 {% if SAMBA_RECYCLE %}
 ################# Recycle #######################
@@ -50,20 +50,23 @@ browseable = no
 # read only = no
 # browseable = yes
 
-### hide files start with a dot (.)
+### Hide files start with a dot (.)
 # hide dot files = yes
 
-### hide selected files. example files start with ($)
+### Hide selected files. example files start with ($)
 # hide files = /$*/
 
-### hide pipes, sockets, devices ...
+### Hide pipes, sockets, devices ...
 # hide special files = yes
 
-### hide files with no read permissions
+### Hide files with no read permissions
 # hide unreadable = yes
 
-### hide files with no write permissions
+### Hide files with no write permissions
 # hide unwriteable files = yes
+
+# Define which extensions will be blocked (will not be saved)
+# veto files = /*.exe/*.bat/*.cmd
 
 {% if SAMBA_PUBLIC %}
 [Public]
