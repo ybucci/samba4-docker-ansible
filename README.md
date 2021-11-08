@@ -23,12 +23,6 @@ This Ansible automation will install and configure multiple Domain Controllers (
 - **Custom script of Domain Controller Backup**
 - **Veeam Backup Linux Agent Free with e-mail html reports**
 
-## Requirements
-
-```
-$ apt-get install ansible git sshpass
-$ ansible-galaxy collection install community.docker
-```
 ## Supported Linux Distributions
 
 - **Ubuntu 21.10**
@@ -40,7 +34,16 @@ $ ansible-galaxy collection install community.docker
 
 ### How to
 
+#### Requirements
+
+```
+$ apt-get install ansible git sshpass
+$ ansible-galaxy collection install community.docker
+```
 #### Clone Repository
+
+
+
 
 ```
 $ git clone https://github.com/YuriBucci2/samba4-docker-ansible.git
