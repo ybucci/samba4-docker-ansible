@@ -35,6 +35,19 @@
     - { role: samba4/install, tags: install }
     - { role: samba4/addons, tags: addons }
 
+  tasks:
+    - name: Add samba-tool on host
+      shell: echo 'docker exec -it samba-pdc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+      when: inventory_hostname in groups['masters']
+      tags: addons
+
+    - name: Add samba-tool on host
+      shell: echo 'docker exec -it samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+      when: inventory_hostname in groups['dc']
+      tags: addons
+
+
+
 
 # - hosts: fileserver
 #   gather_facts: yes
