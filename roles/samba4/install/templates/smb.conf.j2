@@ -10,7 +10,7 @@
         workgroup = {{ SAMBA_DC_DOMAIN }}
         server services = s3fs, rpc, nbt, wrepl, ldap, cldap, kdc, drepl, winbindd, ntp_signd, kcc, dnsupdate
         {% if ansible_host in groups['masters'] %}idmap_ldb:use rfc2307 = yes{% endif %}
-{% if SAMBA_RECYCLE %}vfs objects = recycle{% endif %}
+        vfs objects = {% if SAMBA_RECYCLE %}recycle, dfs_samba4, acl_xattr{% else %}dfs_samba4, acl_xattr{% endif %}
 
 {% if SAMBA_RECYCLE %}
 ################# Recycle #######################
