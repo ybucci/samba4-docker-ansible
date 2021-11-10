@@ -30,6 +30,7 @@
     image: "{{ SAMBA_IMAGE }}"
     state: started
     recreate: yes
+    restart_policy: always
     network_mode: host
     privileged: yes
     hostname: "{{ inventory_hostname }}.{{ SAMBA_DC_REALM }}"
@@ -59,6 +60,7 @@
     image: "{{ SAMBA_IMAGE }}"
     state: started
     recreate: yes
+    restart_policy: always
     network_mode: host
     privileged: yes
     hostname: "{{ inventory_hostname }}.{{ SAMBA_DC_REALM }}"
