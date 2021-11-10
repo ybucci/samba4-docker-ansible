@@ -42,9 +42,9 @@
       tags: addons
 
     - name: Add samba-tool on host
-      shell: echo 'docker exec -it samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+      shell: echo 'docker exec -i samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+      when: inventory_hostname in groups['dc']
       tags: addons
-
 
 
 
