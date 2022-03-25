@@ -13,7 +13,7 @@
   mount:
     name: /Sysvol
     src: localhost:/sysvol
-    opts: "defaults,acl,_netdev"
+    opts: "defaults,acl,_netdev,noauto,x-systemd.automount"
     state: mounted
     fstype: glusterfs
 
