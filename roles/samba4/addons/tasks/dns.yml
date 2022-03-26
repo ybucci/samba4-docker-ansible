@@ -26,3 +26,17 @@
     samba-tool dns add $IP $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} $4 PTR "{{ inventory_hostname }}"."{{ SAMBA_DC_REALM }}"
   ignore_errors: true
   when: inventory_hostname in groups['dc']
+
+- name: Create DNS A / PTR
+  shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    echo $REVERSE_IP
+    samba-tool dns add {{ hostvars[item]['ansible_host'] }} $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} $4 PTR "{{ inventory_hostname }}"."{{ SAMBA_DC_REALM }}"
+    samba-tool dns add {{ hostvars[item]['ansible_host'] }} $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} $4 PTR "{{ inventory_hostname }}"."{{ SAMBA_DC_REALM }}"
+    samba-tool dns add {{ hostvars[item]['ansible_host'] }} --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} {{ SAMBA_DC_REALM }} {{ inventory_hostname }} A {{ ansible_host }}
+  ignore_errors: true
+  register: ip_fileserver
+  when: inventory_hostname in groups['fileserver']
+  with_items: "{{ groups['masters'] }}"

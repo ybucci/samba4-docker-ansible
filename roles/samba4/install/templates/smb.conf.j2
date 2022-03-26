@@ -4,13 +4,25 @@
 [global]
         bind interfaces only = Yes
         interfaces = lo {{ desired_interface_name }}
+        {% if not inventory_hostname in groups['fileserver'] -%}
         netbios name = {{ inventory_hostname | upper }}
+        {% endif -%}
         realm = {{ SAMBA_DC_REALM | upper }}
-        server role = active directory domain controller
+        server role = {% if not inventory_hostname in groups['fileserver'] %}active directory domain controller{% else %}member server{% endif +%}
         workgroup = {{ SAMBA_DC_DOMAIN }}
+        {% if not inventory_hostname in groups['fileserver'] -%}
         server services = s3fs, rpc, nbt, wrepl, ldap, cldap, kdc, drepl, winbindd, ntp_signd, kcc, dnsupdate
-        {% if ansible_host in groups['masters'] %}idmap_ldb:use rfc2307 = yes{% endif %}
-        vfs objects = {% if SAMBA_RECYCLE %}recycle, dfs_samba4, acl_xattr{% else %}dfs_samba4, acl_xattr{% endif %}
+        {% endif -%}
+        {% if inventory_hostname in groups['masters'] -%}
+        idmap_ldb:use rfc2307 = yes
+        {% endif -%}
+        vfs objects = {% if SAMBA_RECYCLE %}recycle,{% endif %} acl_xattr{% if not inventory_hostname in groups['fileserver'] %}, dfs_samba4{% endif +%}
+        {% if  inventory_hostname in groups['fileserver'] -%}
+        winbind use default domain = yes
+        idmap config * : backend = autorid
+        idmap config * : range = 10000-9999999
+        {% endif %}
+
 
 {% if SAMBA_RECYCLE %}
 ################# Recycle #######################
@@ -22,6 +34,8 @@ recycle:exclude = *.tmp, *.log, *.obj, ~*.*, *.bak
 recycle:exclude_dir = tmp, cache, profiles
 
 {% endif %}
+
+{% if not inventory_hostname in groups['fileserver'] %}
 ################# Default Shares ##################
 # Do not modify!!! unless you know what you're doing
 
@@ -32,6 +46,7 @@ recycle:exclude_dir = tmp, cache, profiles
 [netlogon]
         path = /var/lib/samba/sysvol/{{ SAMBA_DC_REALM }}/scripts
         read only = No
+{% endif %}
 
 {% if SAMBA_RECYCLE %}
 ################# Recycle ###################

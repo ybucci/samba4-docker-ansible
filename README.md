@@ -18,6 +18,7 @@ This Ansible automation will install and configure multiple Domain Controllers (
 #### High Avaibility
 - **Sysvol clusterized with GlusterFS.**
 - **Multiple DCs**
+- **Multiple FileServers**
 
 #### Backup
 
@@ -30,7 +31,6 @@ This Ansible automation will install and configure multiple Domain Controllers (
 
 ## To be added
 - **Other distribuitions (Debian, CentOS/RHEL, Fedora)**
-- **Member FileServer**
 - **???**
 
 ## How to
@@ -42,8 +42,6 @@ $ apt-get install ansible git sshpass
 $ ansible-galaxy collection install community.docker
 ```
 ### Clone Repository
-
-
 
 
 ```
@@ -58,4 +56,10 @@ inventory/servers/group_vars/all/all.yml
 ### Run Playbook
 ```
 $ ansible-playbook --become -i inventory/servers/hosts.ini install.yml
+```
+
+### Backup Veeam
+```
+# Access to management console of Veeam backup
+$ veeamconfig ui
 ```

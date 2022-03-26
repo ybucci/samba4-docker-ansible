@@ -23,16 +23,24 @@
   roles:
     - { role: bootstrap, tags: init }
 
-- hosts: masters:dc
+- hosts: all
   gather_facts: yes
   roles:
     - { role: samba4/hosts, tags: hosts }
-    - { role: samba4/sysvol, tags: sysvol }
 
 - hosts: all
   gather_facts: yes
   roles:
     - { role: samba4/install, tags: install }
+
+- hosts: masters:dc
+  gather_facts: yes
+  roles:
+    - { role: samba4/sysvol, tags: sysvol }
+
+- hosts: all
+  gather_facts: yes
+  roles:
     - { role: samba4/addons, tags: addons }
 
   tasks:
@@ -46,6 +54,10 @@
       when: inventory_hostname in groups['dc']
       tags: addons
 
+    - name: Add samba-tool on host
+      shell: echo 'docker exec -i samba-fs samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+      when: inventory_hostname in groups['fileserver']
+      tags: addons      
 
 
 # - hosts: fileserver

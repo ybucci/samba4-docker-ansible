@@ -7,7 +7,7 @@
 	</Repositories>
 	<Jobs>
 		<Job Name="{{ inventory_hostname|upper }}-FILESERVER-BACKUP" creation_time="2021-11-07 02:36:56" RepoName="Local_Driver" {% if SAMBA_VEEAM_BACKUP.ENCRYPTION.ENABLED %}password="{{ SAMBA_VEEAM_BACKUP.ENCRYPTION.PASSWORD }}" hint=""{% endif %}>
-			<JobOptions Version="2" Compression="Lz4" BlockSize="KbBlockSize1024" PrefreezeCommand="" PostthawCommand="" PrejobCommand="/usr/sbin/samba_backup.sh" PostjobCommand="/etc/veeam/vee-mail.sh" ProductSpecific="" MaxPoints="7" IsDedupEnabled="true" SnapshotMode="SnapshotRequired" IsRetriable="true" RetryCount="0" RetryTimeOutMs="600000" Schedule="true">
+			<JobOptions Version="2" Compression="Lz4" BlockSize="KbBlockSize1024" PrefreezeCommand="" PostthawCommand="" PrejobCommand="{% if not inventory_hostname in groups['fileserver'] %}/usr/sbin/samba_backup.sh{% endif %}" PostjobCommand="/etc/veeam/vee-mail.sh" ProductSpecific="" MaxPoints="7" IsDedupEnabled="true" SnapshotMode="SnapshotRequired" IsRetriable="true" RetryCount="0" RetryTimeOutMs="600000" Schedule="true">
 				<EnableDeletedVmDataRetention>true</EnableDeletedVmDataRetention>
 				<Schedule Hours="{{ SAMBA_VEEAM_BACKUP.BACKUP_SCHEDULE.HOUR }}" Minutes="{{ SAMBA_VEEAM_BACKUP.BACKUP_SCHEDULE.MINUTE }}" Type="0" Version="3" IsEnabled="true" WeekDayNumber="Every" DayOfMonth="0">
 					<Time Type="0" Hours="{{ SAMBA_VEEAM_BACKUP.BACKUP_SCHEDULE.HOUR }}" Minutes="{{ SAMBA_VEEAM_BACKUP.BACKUP_SCHEDULE.MINUTE }}" />

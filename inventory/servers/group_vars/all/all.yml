@@ -1,7 +1,9 @@
 ---
 
 # Image who will be used
-SAMBA_IMAGE: yuribucci/samba4-dc:1.0.0_4.14.8
+SAMBA_IMAGE: yuribucci/samba4-dc:1.0.0_4.15.6
+
+SAMBA_IMAGE_FILESERVER: yuribucci/samba4-member:1.0.0_4.15.6
 
 # Directory of mounting shares
 SAMBA_SHARE: /Servidor
@@ -53,7 +55,7 @@ SAMBA_VEEAM_BACKUP:
     EMAIL_SMTP: 'smtp.gmail.com:587'
     EMAIL_FROM: 'email@gmail.com'
     EMAIL_TO: 'email@gmail.com'
-    EMAIL_PASSWORD: 'Password1!'
+    EMAIL_PASSWORD: 'YOUR_PASSWORD'
   # ATENTION! BACKUP LOCATION CANNOT BE ON THE SANE DISK
   BACKUP_LOCATION: '/boot'
   # Backup retention in days

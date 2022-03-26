@@ -18,6 +18,15 @@
     source: pull
   retries: 5
   delay: 3
+  when: inventory_hostname in groups['masters'] or inventory_hostname in groups['dc']
+
+- name: Pull Docker image
+  docker_image:
+    name: "{{ SAMBA_IMAGE_FILESERVER }}"
+    source: pull
+  retries: 5
+  delay: 3
+  when: inventory_hostname in groups['fileserver']
 
 - name: Apply new resolv.conf
   template:
@@ -90,6 +99,42 @@
     src: resolv2conf.j2
     dest: /etc/resolv.conf
 
+- name: Apply krb5
+  template:
+    src: krb5.conf.j2
+    dest: /etc/krb5.conf
+  when: inventory_hostname in groups.fileserver
+
+- name: Create Samba Container
+  docker_container:
+    name: samba-fs
+    image: "{{ SAMBA_IMAGE_FILESERVER }}"
+    state: started
+    recreate: yes
+    restart_policy: always
+    network_mode: host
+    privileged: yes
+    hostname: "{{ inventory_hostname }}.{{ SAMBA_DC_REALM }}"
+    env:
+      SAMBA_DC_REALM: "{{ SAMBA_DC_REALM }}"
+      SAMBA_DC_ADMIN_PASSWD: "{{ SAMBA_DC_ADMIN_PASSWD }}"
+      SAMBA_DC_ACTION: join
+      SAMBA_DC_DOMAIN: "{{ SAMBA_DC_DOMAIN }}"
+      SAMBA_INTERFACE: "{{ desired_interface_name }}"
+      SAMBA_DC_MASTER: "{{ hostvars[groups['masters'][0]]['ansible_host'] }}"
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/krb5.conf:/etc/krb5.conf:ro
+      - /etc/samba:/etc/samba
+      - /var/log/samba:/var/log/samba
+      - "{{ SAMBA_SHARE }}:/samba/shares"
+  when: inventory_hostname in groups.fileserver
+
+- name: Wait 60 seconds to continue
+  pause:
+    seconds: 60
+
 - name: Backup idmap
   community.docker.docker_container_exec:
     container: samba-pdc
@@ -120,6 +165,10 @@
   shell: docker restart samba-dc
   when: inventory_hostname in groups['dc']
 
+- name: Restart container samba-fs
+  shell: docker restart samba-fs
+  when: inventory_hostname in groups['fileserver']
+
 - name: Wait 15 seconds to continue
   pause:
     seconds: 15
@@ -148,6 +197,14 @@
 - name: Restart container samba-dc
   shell: docker restart samba-dc
   when: inventory_hostname in groups['dc']
+
+- name: Wait 15 seconds to continue
+  pause:
+    seconds: 15
+
+- name: Restart container samba-fs
+  shell: docker restart samba-fs
+  when: inventory_hostname in groups['fileserver']
 
 - name: Wait 15 seconds to continue
   pause:
