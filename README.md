@@ -38,14 +38,13 @@ This Ansible automation will install and configure multiple Domain Controllers (
 ### Requirements
 
 ```
-$ apt-get install ansible git sshpass
-$ ansible-galaxy collection install community.docker
-```
-### Clone Repository
-
-
-```
+$ sudo apt-get update
+$ sudo apt-get install python3-pip git -y
+$ pip3 install pip --upgrade
 $ git clone https://github.com/YuriBucci2/samba4-docker-ansible.git
+$ cd samba4-docker-ansible
+$ pip3 install -r requirements.txt
+$ ansible-galaxy install -r requirements.yml
 ```
 ### Edit inventory and hosts
 ```
