@@ -41,7 +41,7 @@ This Ansible automation will install and configure multiple Domain Controllers (
 $ sudo apt-get update
 $ sudo apt-get install python3-pip git sshpass -y
 $ pip3 install pip --upgrade
-$ git clone https://github.com/YuriBucci2/samba4-docker-ansible.git
+$ git clone https://github.com/ybucci/samba4-docker-ansible.git
 $ cd samba4-docker-ansible
 $ pip3 install -r requirements.txt
 $ ansible-galaxy collection install -r requirements.yml
