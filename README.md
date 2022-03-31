@@ -47,7 +47,7 @@ $ ansible-galaxy collection install community.docker
 
 
 ```
-$ git clone https://github.com/YuriBucci2/samba4-docker-ansible.git
+$ git clone https://github.com/ybucci/samba4-docker-ansible.git
 ```
 ### Edit inventory and hosts
 ```
