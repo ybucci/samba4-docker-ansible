@@ -44,7 +44,7 @@ $ pip3 install pip --upgrade
 $ git clone https://github.com/YuriBucci2/samba4-docker-ansible.git
 $ cd samba4-docker-ansible
 $ pip3 install -r requirements.txt
-$ ansible-galaxy install -r requirements.yml
+$ ansible-galaxy collection install -r requirements.yml
 ```
 ### Edit inventory and hosts
 ```
