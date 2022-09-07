@@ -17,6 +17,7 @@
         idmap_ldb:use rfc2307 = yes
         {% endif -%}
         vfs objects = {% if SAMBA_RECYCLE %}recycle,{% endif %} acl_xattr{% if not inventory_hostname in groups['fileserver'] %}, dfs_samba4{% endif +%}
+        ldap server require strong auth = no
         {% if  inventory_hostname in groups['fileserver'] -%}
         winbind use default domain = yes
         idmap config * : backend = autorid
