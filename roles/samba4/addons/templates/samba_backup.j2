@@ -28,9 +28,11 @@
 
 
 
-FROMWHERE=/var/lib/samba
-WHERE={{ SAMBA_BACKUP_DIR }}
-DAYS={{ SAMBA_BACKUP_RETENTION }}                         # Set default retention period.
+FROMWHERE=/var/lib/samba # Diretório do Samba
+WHERE={{ SAMBA_BACKUP_DIR }} # Diretório onde será salvo os backups
+SYSVOL_DIR=/Sysvol/ # Diretório do Sysvol
+ETC_SAMBA_DIR=/etc/samba/ # Diretório do etc do samba
+DAYS={{ SAMBA_BACKUP_RETENTION }}  # Periodo de retenção do backup
 if [ -n "$1" ] && [ "$1" = "-h" -o "$1" = "--usage" ]; then
         echo "samba_backup [provisiondir] [destinationdir] [retpd]"
         echo "Will backup your provision located in provisiondir to archive stored"
@@ -88,7 +90,7 @@ for d in $DIRS;do
 # –warning=no-file-ignored set to suppress “socket ignored” messages
 
 if [ "$d" = "etc" ]; then
-tar cjf ${WHERE}/${n}.${WHEN}.tar.bz2 "/etc/samba/" --warning=no-file-ignored --xattrs
+tar cjf ${WHERE}/${n}.${WHEN}.tar.bz2 "${ETC_SAMBA_DIR}" --warning=no-file-ignored --xattrs
 Status=$? # Preserve $? for message, since [ alters it. #(CASO SEJA “o diretorio etc”)
 else
 tar cjf ${WHERE}/${n}.${WHEN}.tar.bz2 $relativedirname --warning=no-file-ignored --xattrs
@@ -96,5 +98,16 @@ Status=$?  # Preserve $? for message, since [ alters it (CASO seja outro)
 fi
         fi
 done
+
+
+if [ "$d" = "sysvol" ]; then
+tar cjf ${WHERE}/${n}.${WHEN}.tar.bz2 "${SYSVOL_DIR}" --warning=no-file-ignored --xattrs
+Status=$? # Preserve $? for message, since [ alters it. #(CASO SEJA “o diretorio sysvol”)
+else
+tar cjf ${WHERE}/${n}.${WHEN}.tar.bz2 $relativedirname --warning=no-file-ignored --xattrs
+Status=$?  # Preserve $? for message, since [ alters it (CASO seja outro)
+fi
+
+
 
 find $WHERE -name "samba4_*bz2" -mtime +$DAYS -exec rm  {} \;
