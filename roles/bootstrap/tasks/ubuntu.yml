@@ -46,6 +46,7 @@
       - gnupg
       - lsb-release
       - tdb-tools
+      - rsync
     state: present
     update_cache: yes
 
