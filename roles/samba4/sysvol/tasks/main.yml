@@ -16,6 +16,6 @@
 - name: Samba | Sysvol Replication
   include_tasks: gluster-all.yml
 
-- name: Samba | Sysvol Replication
-  include_tasks: copy_files.yml
-  when: inventory_hostname in groups.masters
+# - name: Samba | Sysvol Replication
+#   include_tasks: copy_files.yml
+#   when: inventory_hostname in groups.masters

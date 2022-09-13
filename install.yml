@@ -28,15 +28,15 @@
   roles:
     - { role: samba4/hosts, tags: hosts }
 
-- hosts: all
-  gather_facts: yes
-  roles:
-    - { role: samba4/install, tags: install }
-
 - hosts: masters:dc
   gather_facts: yes
   roles:
     - { role: samba4/sysvol, tags: sysvol }
+
+- hosts: all
+  gather_facts: yes
+  roles:
+    - { role: samba4/install, tags: install }
 
 - hosts: all
   gather_facts: yes
