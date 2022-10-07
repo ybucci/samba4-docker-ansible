@@ -1,0 +1,6 @@
+---
+
+- name: Apply smb.conf
+  ansible.builtin.template:
+    src: smb.conf.j2
+    dest: "{{ SAMBA_DIR_PATH }}/config/smb.conf"

@@ -1,0 +1,11 @@
+---
+
+- name: Check if domain already provisioned
+  ansible.builtin.stat:
+    path: "{{ SAMBA_DIR_PATH }}/domain/private/idmap.ldb"
+  register: idmap_file
+
+- name: Apply new resolv.conf
+  ansible.builtin.template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf

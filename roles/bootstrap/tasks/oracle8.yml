@@ -1,0 +1,87 @@
+---
+
+- name: 'boostrap oracle'
+  block:
+    - name: Set the retry count
+      ansible.builtin.set_fact:
+        retry_count: "{{ 0 if retry_count is undefined else retry_count|int + 1 }}"
+
+    - name: Disable SELinux
+      ansible.posix.selinux:
+        state: disabled
+
+    - name: Upgrade all packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+      register: updates
+
+    - name: Stop and Disable Firewalld
+      ansible.builtin.systemd:
+        name: firewalld
+        state: stopped
+        enabled: no
+      register: selinux_disabled
+
+    - name: Install Required Packages (1/2)
+      ansible.builtin.dnf:
+        name:
+          - dnf-utils
+          - zip 
+          - unzip
+          - oracle-gluster-release-el8
+        state: present
+
+    - name: Enable Docker Repo
+      ansible.builtin.shell: dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+
+    - name: Install Required Packages (2/2)
+      ansible.builtin.dnf:
+        enablerepo: ol8_codeready_builder,ol8_gluster_appstream,ol8_baseos_latest,ol8_appstream
+        name:
+          - docker-ce
+          - '@glusterfs/server'
+
+    - name: Reboot host and wait for it to restart
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible"
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: whoami
+      when: selinux_disabled.changed or updates.changed
+
+    - name: Check Retry
+      ansible.builtin.shell: echo "Check Retry"
+      failed_when: selinux_disabled.changed or updates.changed
+
+  rescue:
+    - fail:
+        msg: Ended after 5 retries
+      when: retry_count|int == 5
+    - debug:
+        msg: "Restarting loop until all updates installed"
+    - include_tasks: oracle8.yml
+
+- name: Enable Docker systemd
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Enable GlusterFS systemd
+  systemd:
+    name: glusterd
+    enabled: yes
+    state: started
+
+- name: Disable resolv NetworkManager
+  ansible.builtin.template:
+    src: 90-dns-none.conf.j2
+    dest: /etc/NetworkManager/conf.d/90-dns-none.conf
+
+- name: Reload NetworkManager
+  ansible.builtin.systemd:
+    name: NetworkManager
+    state: reloaded

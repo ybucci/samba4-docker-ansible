@@ -16,7 +16,7 @@
         {% if inventory_hostname in groups['pdc'] -%}
         idmap_ldb:use rfc2307 = yes
         {% endif -%}
-        vfs objects = {% if SAMBA_RECYCLE %}recycle,{% endif %} acl_xattr{% if not inventory_hostname in groups['fileserver'] %}, dfs_samba4{% endif +%}
+        vfs objects = {% if FILESERVER.ENABLE_RECYCLE_SHARE %}recycle,{% endif %}{% if AUDIT.ENABLE %} full_audit,{% endif %} acl_xattr{% if not inventory_hostname in groups['fileserver'] %}, dfs_samba4{% endif +%}
         ldap server require strong auth = no
         {% if  inventory_hostname in groups['fileserver'] -%}
         winbind use default domain = yes
@@ -24,16 +24,31 @@
         idmap config * : range = 10000-9999999
         {% endif %}
 
-
-{% if SAMBA_RECYCLE %}
+{% if not inventory_hostname in groups['pdc'] and not inventory_hostname in groups['dc'] or FILESERVER.ENABLE_FS_ON_DC %}
+{% if FILESERVER.ENABLE_RECYCLE_SHARE %}
 ################# Recycle #######################
 
-recycle:keeptree = yes
-recycle:versions = yes
+# Se habilitado mantém a estrutura de diretórios ao mover os arquivos para a Lixeira
+recycle:keeptree = True
+# Se habilitado preserva arquivos deletados com o mesmo nome criando uma copia do mesmo no repositório da Lixeira
+recycle:versions = True
+# Diretório da Lixeira seguido da váriavel "%U" que identifica o nome de usuário, ou seja o arquivo que foi deletado pelo usuário João será salvo na pasta do mesmo e com isso facilitando a visualização de quem deletou o arquivo
 recycle:repository = /samba/shares/Recycle/%U
+# Extensões de arquivos e pastas que não serão tratadas pela Lixeira
 recycle:exclude = *.tmp, *.log, *.obj, ~*.*, *.bak
 recycle:exclude_dir = tmp, cache, profiles
 
+{% endif %}
+{% endif %}
+
+{% if AUDIT.ENABLE %}
+################# Audit #######################
+
+full_audit:prefix = %I|%m|%S
+full_audit:success = mkdirat pread pwrite renameat unlinkat create_file
+full_audit:failure = none
+full_audit:facility = LOCAL5
+full_audit:priority = notice
 {% endif %}
 
 {% if not inventory_hostname in groups['fileserver'] %}
@@ -49,7 +64,8 @@ recycle:exclude_dir = tmp, cache, profiles
         read only = No
 {% endif %}
 
-{% if SAMBA_RECYCLE %}
+{% if not inventory_hostname in groups['pdc'] and not inventory_hostname in groups['dc'] or FILESERVER.ENABLE_FS_ON_DC %}
+{% if FILESERVER.ENABLE_RECYCLE_SHARE %}
 ################# Recycle ###################
 
 [Recycle]
@@ -72,14 +88,15 @@ browseable = no
 # hide unwriteable files = yes # Hide files with no write permissions
 # veto files = /*.exe/*.bat/*.cmd # Define which extensions will be blocked (will not be saved)
 
-{% if SAMBA_PUBLIC %}
+{% if FILESERVER.ENABLE_PUBLIC_SHARE %}
 [Public]
 path = /samba/shares/Public
 read only = no
 {% endif %}
 
-{% if SAMBA_HOME_USER %}
+{% if FILESERVER.ENABLE_HOME_SHARE %}
 [Users]
 path = /samba/shares/Users
 read only = no
+{% endif %}
 {% endif %}

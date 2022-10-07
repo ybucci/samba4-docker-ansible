@@ -1,0 +1,59 @@
+---
+
+# Create Folders
+
+- name: Create Home Users Directory
+  ansible.builtin.file:
+    path: "{{ FILESERVER.SHARE_PATH }}/Users"
+    state: directory
+  when: FILESERVER.ENABLE_HOME_SHARE
+
+- name: Create Public Directory
+  ansible.builtin.file:
+    path: "{{ FILESERVER.SHARE_PATH }}/Public"
+    state: directory
+  when: FILESERVER.ENABLE_PUBLIC_SHARE
+
+- name: Create Recycle Directory
+  ansible.builtin.file:
+    path: "{{ FILESERVER.SHARE_PATH }}/Recycle"
+    state: directory
+  when: FILESERVER.ENABLE_RECYCLE_SHARE
+
+# Chown Folders
+
+- name: Chown Folders
+  community.docker.docker_container_exec:
+    container: samba-pdc
+    command: /bin/bash -c 'chown "Administrator":"Domain Admins" /samba/shares/*'
+  when: inventory_hostname in groups['pdc']
+
+- name: Chown Folders
+  community.docker.docker_container_exec:
+    container: samba-dc
+    command: /bin/bash -c 'chown "Administrator":"Domain Admins" /samba/shares/*'
+  when: inventory_hostname in groups['dc']
+
+- name: Chown Folders
+  community.docker.docker_container_exec:
+    container: samba-fs
+    command: /bin/bash -c 'chown "Administrator":"Domain Admins" /samba/shares/*'
+  when: inventory_hostname in groups['fileserver']
+
+# Home User
+
+- name: Set ACL of Home Users Folder
+  ansible.builtin.shell: samba-tool ntacl set "O:LAG:DAD:PAI(A;OICI;0x001f01ff;;;LA)(A;OICI;0x001f01ff;;;DA)(A;OICIIO;0x001f01ff;;;CO)(A;;0x001200a9;;;DU)" /samba/shares/Users
+  when: FILESERVER.ENABLE_HOME_SHARE
+
+# Public
+
+- name: Set ACL of Public Folder
+  ansible.builtin.shell: samba-tool ntacl set "O:LAG:DAD:PAI(A;;0x001f01ff;;;LA)(A;;0x001f01ff;;;DA)(A;OICIIO;0x001301bf;;;CO)(A;OICIIO;0x001301bf;;;CG)(A;OICI;0x001301bf;;;DU)" /samba/shares/Public
+  when: FILESERVER.ENABLE_PUBLIC_SHARE
+
+# Recycle
+
+- name: Set ACL of Recycle Folder
+  ansible.builtin.shell: samba-tool ntacl set "O:LAG:DAD:PAI(A;OICI;0x001f01ff;;;LA)(A;OICI;0x001f01ff;;;DA)(A;OICIIO;0x001f01ff;;;CO)(A;;0x001201bd;;;DU)" /samba/shares/Recycle
+  when: FILESERVER.ENABLE_RECYCLE_SHARE

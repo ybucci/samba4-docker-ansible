@@ -1,29 +1,29 @@
 - name: Creates Sysvol directory
-  file:
-    path: /Sysvol
+  ansible.builtin.file:
+    path: "{{ SAMBA_DIR_PATH }}/sysvol"
     state: directory
 
 - name: Unmount Sysvol
-  mount:
-    path: /Sysvol
+  ansible.builtin.mount:
+    path: "{{ SAMBA_DIR_PATH }}/sysvol"
     state: unmounted
   ignore_errors: true
 
 - name: Mount and bind Sysvol
-  mount:
-    name: /Sysvol
+  ansible.builtin.mount:
+    name: "{{ SAMBA_DIR_PATH }}/sysvol"
     src: localhost:/sysvol
-    opts: "defaults,acl,_netdev,noauto,x-systemd.automount"
+    opts: "defaults,acl,_netdev"
     state: mounted
     fstype: glusterfs
 
 - name: Creates Sysvol directory
-  file:
+  ansible.builtin.file:
     path: /etc/systemd/system/srv.mount.d
     state: directory
 
 - name: Create Gluster SystemD
-  template:
+  ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   with_items:

@@ -1,8 +1,11 @@
 ---
 
-- set_fact:
-    distribution: "{{ hostvars[inventory_hostname].ansible_distribution }}"
-    release: "{{ hostvars[inventory_hostname].ansible_distribution_release }}"
+- ansible.builtin.set_fact:
+    distribution: "{{ hostvars[inventory_hostname].ansible_facts.distribution }}"
+    release: "{{ hostvars[inventory_hostname].ansible_facts.distribution_major_version }}"
+
+- ansible.builtin.include_tasks: oracle8.yml
+  when: distribution == "OracleLinux" and release == "8"
 
 - include_tasks: ubuntu.yml
   when: distribution == "Ubuntu"

@@ -1,24 +1,20 @@
 ---
 
 # Image who will be used
-SAMBA_IMAGE: yuribucci/samba4-dc:1.0.0_4.15.6
+SAMBA_IMAGE: yuribucci/samba4-dc:1.0.3_4.17.0
 
-SAMBA_IMAGE_FILESERVER: yuribucci/samba4-member:1.0.0_4.15.6
+# All persistent files of samba
+SAMBA_DIR_PATH: /Samba
 
 # Directory of mounting shares
 SAMBA_SHARE: /Servidor
 
-# Domain
+# Domain Configurations
 SAMBA_DC_REALM: "contoso.local"
 SAMBA_DC_DOMAIN: "CONTOSO"
 
 # Administrator Password
 SAMBA_DC_ADMIN_PASSWD: 'Password1!'
-
-# Use optionals Recyce, Home User or Public Dirs
-SAMBA_RECYCLE: true
-SAMBA_HOME_USER: true
-SAMBA_PUBLIC: true
 
 # The password complexity (on | off) | Default is 'on'
 SAMBA_PWD_COMPLEXITY: "off"
@@ -47,45 +43,108 @@ SAMBA_BACKUP_DIR: /Servidor/Backup
 # Retetion in days of backup (Only Domain Backup)
 SAMBA_BACKUP_RETENTION: "90"
 
-# Veaam for backup FileServer
-SAMBA_VEEAM_BACKUP:
-  ENABLED: true
-  SEND_EMAIL:
-    ENABLED: true
-    EMAIL_SMTP: 'smtp.gmail.com:587'
-    EMAIL_FROM: 'email@gmail.com'
-    EMAIL_TO: 'email@gmail.com'
-    EMAIL_PASSWORD: 'YOUR_PASSWORD'
-  # ATENTION! BACKUP LOCATION CANNOT BE ON THE SANE DISK
-  BACKUP_LOCATION: '/boot'
-  # Backup retention in days
-  BACKUP_RETENTION: 7
-  ENCRYPTION:
-    ENABLED: true
-    PASSWORD: 'Password1!'  
-  BACKUP_SCHEDULE:
-    HOUR: 20
-    MINUTE: 00
-    MONDAY: true
-    TUESDAY: true
-    WEDNESDAY: true
-    THURSDAY: true
-    FRIDAY: true
-    SATURDAY: true
-    SUNDAY: false
-  BACKUP_FULL:
-    ENABLED: true
-    # month or week
-    TYPE: month
-    MONTH_DAY: 1
-    WEEK_DAY:
-      MONDAY: false
-      TUESDAY: false
-      WEDNESDAY: false
-      THURSDAY: false
-      FRIDAY: false
-      SATURDAY: false
-      SUNDAY: true
+# Select your DNS Backend "bind" or "samba_internal"
+DNS_BACKEND: "bind"
+
+# Change the hostnames based in hosts.ini file
+CHANGE_HOSTNAME: true
+
+# Input your timezone
+TIMEZONE: "America/Sao_Paulo"
+
+# FileServer Configurations
+FILESERVER:
+  # Enable FileServer on DC, default is false
+  ENABLE_FS_ON_DC: true
+  SHARE_PATH: /Servidor
+  ENABLE_RECYCLE_SHARE: true
+  ENABLE_PUBLIC_SHARE: true
+  ENABLE_HOME_SHARE: true
+
+# Enable or disable audit
+AUDIT:
+  ENABLE: true
+
+
+
+# # Domain
+# SAMBA_DC_REALM: "contoso.local"
+# SAMBA_DC_DOMAIN: "CONTOSO"
+
+# # Administrator Password
+# SAMBA_DC_ADMIN_PASSWD: 'Password1!'
+
+# # Use optionals Recyce, Home User or Public Dirs
+# SAMBA_RECYCLE: true
+# SAMBA_HOME_USER: true
+# SAMBA_PUBLIC: true
+
+# # The password complexity (on | off) | Default is 'on'
+# SAMBA_PWD_COMPLEXITY: "off"
+
+# # The password history length <integer>. | Default is 24.
+# SAMBA_PWD_HISTORY_LENGHT: "24"
+
+# # The minimum password length <integer> | Default is 7.
+# SAMBA_PWD_MIN_LENGHT: "4"
+
+# # The minimum password age <integer in days> | Default is 1.
+# SAMBA_PWD_MIN_AGE: "1"
+
+# # The maximum password age <integer in days> | Default is 43.
+# SAMBA_PWD_MAX_AGE: "43"
+
+# # The the length of time an account is locked out after exeeding the limit on bad password attempts <integer in mins> | Default is 30 mins.
+# SAMBA_ACC_LOCKOUT_DURATION: "30"
+
+# # The number of bad password attempts allowed before locking out the account <integer> | Default is 0 (never lock out).
+# SAMBA_ACC_LOCKOUT_THRESHOLD: "0"
+
+# # Directory where backups will be saved (Only Domain Backup)
+# SAMBA_BACKUP_DIR: /Servidor/Backup
+
+# # Retetion in days of backup (Only Domain Backup)
+# SAMBA_BACKUP_RETENTION: "90"
+
+# # Veaam for backup FileServer
+# SAMBA_VEEAM_BACKUP:
+#   ENABLED: true
+#   SEND_EMAIL:
+#     ENABLED: true
+#     EMAIL_SMTP: 'smtp.gmail.com:587'
+#     EMAIL_FROM: 'email@gmail.com'
+#     EMAIL_TO: 'email@gmail.com'
+#     EMAIL_PASSWORD: 'YOUR_PASSWORD'
+#   # ATENTION! BACKUP LOCATION CANNOT BE ON THE SANE DISK
+#   BACKUP_LOCATION: '/boot'
+#   # Backup retention in days
+#   BACKUP_RETENTION: 7
+#   ENCRYPTION:
+#     ENABLED: true
+#     PASSWORD: 'Password1!'  
+#   BACKUP_SCHEDULE:
+#     HOUR: 20
+#     MINUTE: 00
+#     MONDAY: true
+#     TUESDAY: true
+#     WEDNESDAY: true
+#     THURSDAY: true
+#     FRIDAY: true
+#     SATURDAY: true
+#     SUNDAY: false
+#   BACKUP_FULL:
+#     ENABLED: true
+#     # month or week
+#     TYPE: month
+#     MONTH_DAY: 1
+#     WEEK_DAY:
+#       MONDAY: false
+#       TUESDAY: false
+#       WEDNESDAY: false
+#       THURSDAY: false
+#       FRIDAY: false
+#       SATURDAY: false
+#       SUNDAY: true
 
 
 

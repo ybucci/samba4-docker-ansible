@@ -1,0 +1,54 @@
+---
+
+- name: Create Samba DC Container
+  community.docker.docker_container:
+    name: samba-dc
+    image: "{{ SAMBA_IMAGE }}"
+    state: started
+    recreate: yes
+    restart_policy: always
+    network_mode: host
+    privileged: yes
+    hostname: "{{ inventory_hostname }}.{{ SAMBA_DC_REALM }}"
+    env:
+      SAMBA_DC_REALM: "{{ SAMBA_DC_REALM }}"
+      SAMBA_DC_ADMIN_PASSWD: "{{ SAMBA_DC_ADMIN_PASSWD }}"
+      SAMBA_DC_ACTION: join
+      SAMBA_DC_DOMAIN: "{{ SAMBA_DC_DOMAIN }}"
+      SAMBA_INTERFACE: "{{ ansible_default_ipv4.interface }}"
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - "{{ SAMBA_DIR_PATH }}/domain:/var/lib/samba"
+      - "{{ SAMBA_DIR_PATH }}/sysvol:/var/lib/samba/sysvol"
+      - "{{ SAMBA_DIR_PATH }}/config:/etc/samba"
+      - "{{ SAMBA_DIR_PATH }}/logs:/var/log/samba"
+      - "{{ FILESERVER.SHARE_PATH }}:/samba/shares"
+
+- name: Wait Samba be ready
+  ansible.builtin.wait_for:
+    port: 445
+
+- name: Stopped Samba DC
+  community.docker.docker_container:
+    name: samba-dc
+    state: stopped
+
+- name: Copy idpmap to DCs
+  ansible.builtin.copy: 
+    src: buffer/idmap.ldb.bak 
+    dest: "{{ SAMBA_DIR_PATH }}/domain/private/idmap.ldb"
+
+- name: Started Samba DC
+  community.docker.docker_container:
+    name: samba-dc
+    state: started
+
+- name: Wait Samba be ready
+  ansible.builtin.wait_for:
+    port: 445
+
+- name: Force update DNS
+  community.docker.docker_container_exec:
+    container: samba-dc
+    command: /bin/bash -c "samba_dnsupdate --all-names --verbose"
