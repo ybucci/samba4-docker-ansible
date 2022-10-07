@@ -22,7 +22,6 @@
       SAMBA_INTERFACE: "{{ ansible_default_ipv4.interface }}"
     volumes:
       - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
       - "{{ SAMBA_DIR_PATH }}/domain:/var/lib/samba"
       - "{{ SAMBA_DIR_PATH }}/sysvol:/var/lib/samba/sysvol"
       - "{{ SAMBA_DIR_PATH }}/config:/etc/samba"

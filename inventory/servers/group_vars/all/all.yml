@@ -1,7 +1,7 @@
 ---
 
 # Image who will be used
-SAMBA_IMAGE: yuribucci/samba4-dc:1.0.3_4.17.0
+SAMBA_IMAGE: yuribucci/samba4-dc:develop
 
 # All persistent files of samba
 SAMBA_DIR_PATH: /Samba

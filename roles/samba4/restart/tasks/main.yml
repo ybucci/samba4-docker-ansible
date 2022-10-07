@@ -1,6 +1,6 @@
 ---
 
-- name: Started Samba PDC
+- name: Restart Samba PDC
   community.docker.docker_container:
     name: samba-pdc
     restart: yes
@@ -11,7 +11,7 @@
     port: 445
   when: inventory_hostname in groups['pdc']
 
-- name: Started Samba DC
+- name: Restart Samba DC
   community.docker.docker_container:
     name: samba-dc
     restart: yes
@@ -22,7 +22,7 @@
     port: 445
   when: inventory_hostname in groups['dc']
 
-- name: Started Samba FS
+- name: Restart Samba FS
   community.docker.docker_container:
     name: samba-fs
     restart: yes

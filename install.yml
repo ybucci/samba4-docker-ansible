@@ -7,8 +7,23 @@
 
 - hosts: all
   gather_facts: yes
+  tasks:
+
+    - name: Change Hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}.{{ SAMBA_DC_REALM }}"
+      when: ansible_fqdn != ansible_host and CHANGE_HOSTNAME
+      tags: hostname, install
+
+    - name: Set timezone
+      ansible.builtin.timezone:
+        name: "{{ TIMEZONE }}"
+      tags: timezone, install
+
+- hosts: all
+  gather_facts: yes
   roles:
-    - { role: samba4/hosts, tags: [ 'install', 'hosts', 'install-pdc', 'install-dc', 'install-fileserver' ] }
+    - { role: samba4/hosts, tags: [ 'install', 'hosts', 'install-pdc', 'install-dc', 'install-fs' ] }
 
 - hosts: pdc:dc
   gather_facts: yes
@@ -23,28 +38,28 @@
       community.docker.docker_image:
         name: "{{ SAMBA_IMAGE }}"
         source: pull
-      tags: [ 'pull', 'install', 'install-pdc', 'install-dc', 'install-fileserver' ]
+      tags: [ 'pull', 'install', 'install-pdc', 'install-dc', 'install-fs' ]
 
 - hosts: all
   gather_facts: yes
   roles:
-    - { role: samba4/resolv, tags: [ 'resolv', 'install', 'install-pdc', 'install-dc', 'install-fileserver' ] }
+    - { role: samba4/resolv, tags: [ 'resolv', 'install', 'install-pdc', 'install-dc', 'install-fs' ] }
 
 - hosts: pdc
   gather_facts: yes
   roles:
-    - { role: samba4/install, tags: [ 'install', 'install-pdc' ] }
+    - { role: samba4/install, tags: [ 'install', 'install-pdc', 'deploy-pdc' ] }
 
 - hosts: dc
   gather_facts: yes
   roles:
-    - { role: samba4/install, tags: [ 'install', 'install-dc' ] }
+    - { role: samba4/install, tags: [ 'install', 'install-dc', 'deploy-dc' ] }
     - { role: samba4/resolv, tags: [ 'resolv' ] }
 
 - hosts: fileserver
   gather_facts: yes
   roles:
-    - { role: samba4/install, tags: [ 'install', 'install-fileserver'] }
+    - { role: samba4/install, tags: [ 'install', 'install-fs', 'deploy-fs'] }
 
 - hosts: all
   gather_facts: yes
