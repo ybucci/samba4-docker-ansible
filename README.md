@@ -28,6 +28,7 @@ This Ansible automation will install and configure multiple Domain Controllers (
 ## Supported Linux Distributions
 
 - **Ubuntu 21.10**
+- **Oracle Linux 8**
 
 ## To be added
 - **Other distribuitions (Debian, CentOS/RHEL, Fedora)**
