@@ -1,0 +1,34 @@
+---
+
+- name: Restart Samba PDC
+  community.docker.docker_container:
+    name: samba-pdc
+    restart: yes
+  when: inventory_hostname in groups['pdc']
+
+- name: Wait Samba be ready
+  ansible.builtin.wait_for:
+    port: 445
+  when: inventory_hostname in groups['pdc']
+
+- name: Restart Samba DC
+  community.docker.docker_container:
+    name: samba-dc
+    restart: yes
+  when: inventory_hostname in groups['dc']
+
+- name: Wait Samba be ready
+  ansible.builtin.wait_for:
+    port: 445
+  when: inventory_hostname in groups['dc']
+
+- name: Restart Samba FS
+  community.docker.docker_container:
+    name: samba-fs
+    restart: yes
+  when: inventory_hostname in groups['fileserver']
+
+- name: Wait Samba be ready
+  ansible.builtin.wait_for:
+    port: 445
+  when: inventory_hostname in groups['fileserver']

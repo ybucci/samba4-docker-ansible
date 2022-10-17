@@ -1,91 +1,103 @@
 ---
 
 - hosts: all
-  gather_facts: true
-  vars:
-    desired_interface_name: ""
-    target_interface_name: "{{ ansible_host }}"
+  gather_facts: yes
+  roles:
+    - { role: bootstrap, tags: [ 'install', 'bootstrap', 'install-pdc', 'install-dc', 'install-fileserver' ] }
 
+- hosts: all
+  gather_facts: yes
   tasks:
-    - name: parse interfaces
-      set_fact:
-        desired_interface_name="{{ item }}"
-      when: hostvars[inventory_hostname]['ansible_{{item}}']['ipv4']['address'] == target_interface_name
-      with_items:
-        - "{{ ansible_interfaces }}"
-      tags: [ 'install', 'init', 'hosts', 'sysvol', 'addons' ]
 
-- hosts: all
-  gather_facts: yes
-  vars:
-    distribution: "{{ hostvars[inventory_hostname].ansible_distribution }}"
-    release: "{{ hostvars[inventory_hostname].ansible_distribution_release }}"
-  roles:
-    - { role: bootstrap, tags: init }
+    - name: Change Hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}.{{ SAMBA_DC_REALM }}"
+      when: ansible_fqdn != ansible_host and CHANGE_HOSTNAME
+      tags: hostname, install
+
+    - name: Set timezone
+      ansible.builtin.timezone:
+        name: "{{ TIMEZONE }}"
+      tags: timezone, install
 
 - hosts: all
   gather_facts: yes
   roles:
-    - { role: samba4/hosts, tags: hosts }
+    - { role: samba4/hosts, tags: [ 'install', 'hosts', 'install-pdc', 'install-dc', 'install-fs' ] }
 
-- hosts: masters:dc
+- hosts: pdc:dc
   gather_facts: yes
   roles:
-    - { role: samba4/sysvol, tags: sysvol }
+    - { role: samba4/sysvol, tags: [ 'install', 'sysvol', 'install-pdc', 'install-dc' ] }
 
 - hosts: all
   gather_facts: yes
-  roles:
-    - { role: samba4/install, tags: install }
-
-- hosts: all
-  gather_facts: yes
-  roles:
-    - { role: samba4/addons, tags: addons }
-
   tasks:
-    - name: Add samba-tool on host
-      shell: echo 'docker exec -it samba-pdc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
-      when: inventory_hostname in groups['masters']
-      tags: addons
 
-    - name: Add samba-tool on host
-      shell: echo 'docker exec -i samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+    - name: Pull Docker image
+      community.docker.docker_image:
+        name: "{{ SAMBA_IMAGE }}"
+        source: pull
+      tags: [ 'pull', 'install', 'install-pdc', 'install-dc', 'install-fs' ]
+
+- hosts: all
+  gather_facts: yes
+  roles:
+    - { role: samba4/resolv, tags: [ 'resolv', 'install', 'install-pdc', 'install-dc', 'install-fs' ] }
+
+- hosts: pdc
+  gather_facts: yes
+  roles:
+    - { role: samba4/install, tags: [ 'install', 'install-pdc', 'deploy-pdc' ] }
+
+- hosts: dc
+  gather_facts: yes
+  roles:
+    - { role: samba4/install, tags: [ 'install', 'install-dc', 'deploy-dc' ] }
+    - { role: samba4/resolv, tags: [ 'resolv' ] }
+
+- hosts: fileserver
+  gather_facts: yes
+  roles:
+    - { role: samba4/install, tags: [ 'install', 'install-fs', 'deploy-fs'] }
+
+- hosts: all
+  gather_facts: yes
+  tasks:
+
+    - name: Add samba-tool on PDC
+      ansible.builtin.shell: echo 'docker exec -i samba-pdc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+      when: inventory_hostname in groups['pdc']
+      tags: [ 'fileserver', 'reverse_dns', 'password', 'addons' ]
+
+    - name: Add samba_dnsupdate on PDC
+      ansible.builtin.shell: echo 'docker exec -i samba-pdc samba_dnsupdate $*' > /usr/sbin/samba_dnsupdate && chmod +x /usr/sbin/samba_dnsupdate
+      when: inventory_hostname in groups['pdc']
+      tags: [ 'fileserver', 'reverse_dns', 'password', 'addons' ]
+
+    - name: Add samba-tool on DC
+      ansible.builtin.shell: echo 'docker exec -i samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
       when: inventory_hostname in groups['dc']
-      tags: addons
+      tags: [ 'fileserver', 'reverse_dns', 'password', 'addons' ]
+
+    - name: Add samba_dnsupdate on DC
+      ansible.builtin.shell: echo 'docker exec -i samba-dc samba_dnsupdate $*' > /usr/sbin/samba_dnsupdate && chmod +x /usr/sbin/samba_dnsupdate
+      when: inventory_hostname in groups['dc']
+      tags: [ 'fileserver', 'reverse_dns', 'password', 'addons' ]
 
     - name: Add samba-tool on host
-      shell: echo 'docker exec -i samba-fs samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+      ansible.builtin.shell: echo 'docker exec -i samba-fs samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
       when: inventory_hostname in groups['fileserver']
-      tags: addons      
+      tags: [ 'fileserver', 'reverse_dns', 'password', 'addons' ]
 
-
-# - hosts: fileserver
-#   gather_facts: yes
-#   roles:
-#     - { role: samba4/fileserver/member, tags: [ 'member', 'memberfs' ] }
-
-# - { role: samba4/fileserver/dc, tags: [ 'fileserver', 'dc' ] }
-
-# - hosts: fileserver
-#   gather_facts: yes
-#   roles:
-#     - { role: samba4/fileserver/member_dirs, tags: [ 'member', 'member_dirs' ] }
-
-# - hosts: masters
-#   gather_facts: no
-#   tasks:
-#     - name: Update DNS
-#       shell: "samba_dnsupdate --all-names --verbose"
-
-
-# - hosts: all
-#   gather_facts: yes
-#   roles:
-#     - { role: samba4/audit, tags: [ 'audit', 'masters', 'dc', 'member' ] }
-
-# - hosts: masters
-#   gather_facts: yes
-#   roles:
-#     - { role: samba4/configuration/dns, tags: [ 'configs_dns', 'masters' ] }
-#     - { role: samba4/configuration/group_policies, tags: [ 'gpo', 'masters' ] }
+- hosts: all
+  gather_facts: yes
+  roles:
+    - { role: samba4/smbconf, tags: [ 'smbconf' ] }
+    - { role: samba4/restart, tags: [ 'restart' ] }
+    - { role: samba4/fileserver, tags: [ 'fileserver' ] }
+    - { role: samba4/restart, tags: [ 'restart' ] }
+    - { role: samba4/addons/reverse_dns, tags: [ 'reverse_dns', 'addons' ] }
+    - { role: samba4/addons/password, tags: [ 'password', 'addons' ] }
+    - { role: samba4/addons/backup, tags: [ 'backup', 'addons' ] }
+    - { role: samba4/addons/samba_tool, tags: [ 'samba_tool', 'fileserver', 'reverse_dns', 'password', 'addons' ] }

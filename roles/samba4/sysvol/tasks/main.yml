@@ -1,21 +1,31 @@
+
+- name: Check if samba-pdc exist
+  community.docker.docker_container_info:
+    name: samba-pdc
+  register: container_check_pdc
+
+- name: Check if samba-dc exist
+  community.docker.docker_container_info:
+    name: samba-dc
+  register: container_check_dc
+
 - name: Apply GlusterD volume configuration
-  template:
+  ansible.builtin.template:
     src: glusterd.vol.j2
     dest: /etc/glusterfs/glusterd.vol
+  when: not container_check_pdc.exists or not container_check_dc.exists
 
 - name: Enable and start service Gluster
-  systemd:
+  ansible.builtin.systemd:
     name: glusterd.service
     enabled: yes
     state: restarted
+  when: not container_check_pdc.exists or not container_check_dc.exists
 
 - name: Samba | Sysvol Replication
-  include_tasks: gluster-master.yml
-  when: inventory_hostname in groups.masters
+  ansible.builtin.include_tasks: gluster-master.yml
+  when: inventory_hostname in groups.pdc
 
 - name: Samba | Sysvol Replication
-  include_tasks: gluster-all.yml
-
-# - name: Samba | Sysvol Replication
-#   include_tasks: copy_files.yml
-#   when: inventory_hostname in groups.masters
+  ansible.builtin.include_tasks: gluster-all.yml
+  when: not container_check_pdc.exists or not container_check_dc.exists

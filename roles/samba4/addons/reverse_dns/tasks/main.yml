@@ -1,0 +1,159 @@
+---
+
+- name: Check Zones in PDC
+  ansible.builtin.shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    echo $REVERSE_IP
+  register: check_reverse_pdc
+  when: inventory_hostname in groups['pdc']
+
+- name: Check Zones in DC
+  ansible.builtin.shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    echo $REVERSE_IP
+  register: check_reverse_dc
+  when: inventory_hostname in groups['dc']
+
+- name: Set Fact
+  ansible.builtin.set_fact:
+    check_reverse_pdc: "{{ check_reverse_pdc.stdout }}"
+  when: inventory_hostname in groups['pdc']
+
+- name: Set Fact
+  ansible.builtin.set_fact:
+    check_reverse_dc: "{{ check_reverse_dc.stdout }}"
+  when: inventory_hostname in groups['dc']
+
+- name: Check If Zone already Exist in PDC
+  ansible.builtin.shell: |
+    #!/bin/sh
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    CHECK_ZONE=$(samba-tool dns zonelist {{ inventory_hostname }} --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} --workgroup={{ SAMBA_DC_DOMAIN|upper }} | grep $REVERSE_IP)
+
+    if (exit $?)
+    then
+        echo True
+    else
+        echo False
+    fi
+  register: zone_exist_pdc
+  when: inventory_hostname in groups['pdc']
+
+- name: Check If Zone already Exist in DC
+  ansible.builtin.shell: |
+    #!/bin/sh
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    CHECK_ZONE=$(samba-tool dns zonelist {{ inventory_hostname }} --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} --workgroup={{ SAMBA_DC_DOMAIN|upper }} | grep $REVERSE_IP)
+
+    if (exit $?)
+    then
+        echo True
+    else
+        echo False
+    fi
+  register: zone_exist_dc
+  when: hostvars[item]['check_reverse_pdc'] != check_reverse_dc and inventory_hostname in groups['dc']
+  with_items: "{{ groups['pdc'] }}"
+
+- name: Create DNS Reverse Zone in PDC
+  ansible.builtin.shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    samba-tool dns zonecreate $IP $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} --workgroup={{ SAMBA_DC_DOMAIN|upper }}
+    samba_dnsupdate --all-names --verbose
+  when: inventory_hostname in groups['pdc'] and zone_exist_pdc.stdout == "False"
+
+- name: Create DNS Reverse Zone in DC
+  ansible.builtin.shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    samba-tool dns zonecreate $IP $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} --workgroup={{ SAMBA_DC_DOMAIN|upper }}
+    samba_dnsupdate --all-names --verbose
+  when: hostvars[item]['check_reverse_pdc'] != check_reverse_dc and inventory_hostname in groups['dc'] and zone_exist_dc.stdout == "False"
+  with_items: "{{ groups['pdc'] }}"
+
+- name: Check If PTR Already Exist of PDC
+  ansible.builtin.shell: |
+    #!/bin/sh
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    CHECK_ZONE=$(samba-tool dns query {{ inventory_hostname }} $REVERSE_IP @ PTR --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} --workgroup={{ SAMBA_DC_DOMAIN|upper }} | grep {{ inventory_hostname }})
+
+    if (exit $?)
+    then
+        echo True
+    else
+        echo False
+    fi
+  register: ptr_exist_pdc
+  when: inventory_hostname in groups['pdc']
+
+- name: Check If PTR Already Exist of DC
+  ansible.builtin.shell: |
+    #!/bin/sh
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    CHECK_ZONE=$(samba-tool dns query {{ inventory_hostname }} $REVERSE_IP @ PTR --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} --workgroup={{ SAMBA_DC_DOMAIN|upper }} | grep {{ inventory_hostname }})
+
+    if (exit $?)
+    then
+        echo True
+    else
+        echo False
+    fi
+  register: ptr_exist_dc
+  when: inventory_hostname in groups['dc']
+
+- name: Check If PTR Already Exist of FileServer
+  ansible.builtin.shell: |
+    #!/bin/sh
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    CHECK_ZONE=$(samba-tool dns query {{ hostvars[groups['pdc'][0]]['ansible_host'] }} $REVERSE_IP @ PTR --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} --workgroup={{ SAMBA_DC_DOMAIN|upper }} | grep {{ inventory_hostname }})
+
+    if (exit $?)
+    then
+        echo True
+    else
+        echo False
+    fi
+  register: ptr_exist_fs
+  when: inventory_hostname in groups['fileserver']
+
+- name: Create DNS PTR of PDC
+  ansible.builtin.shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    samba-tool dns add $IP $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} $4 PTR "{{ inventory_hostname }}"."{{ SAMBA_DC_REALM }}"
+  when: inventory_hostname in groups['pdc'] and ptr_exist_pdc.stdout == "False"
+
+- name: Create DNS PTR of DC
+  ansible.builtin.shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    samba-tool dns add $IP $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} $4 PTR "{{ inventory_hostname }}"."{{ SAMBA_DC_REALM }}"
+  when: inventory_hostname in groups['dc'] and ptr_exist_dc.stdout == "False"
+
+- name: Create DNS PTR of FileServer
+  ansible.builtin.shell: |
+    IP="{{ ansible_host }}"
+    set `echo "$IP" | sed 's/\./ /g'`
+    REVERSE_IP=$3.$2.$1.in-addr.arpa
+    samba-tool dns add {{ hostvars[item]['ansible_host'] }} $REVERSE_IP --username=Administrator --password={{ SAMBA_DC_ADMIN_PASSWD }} $4 PTR "{{ inventory_hostname }}"."{{ SAMBA_DC_REALM }}"
+  when: inventory_hostname in groups['fileserver'] and ptr_exist_fs.stdout == "False"
+  with_items: "{{ groups['pdc'] }}"

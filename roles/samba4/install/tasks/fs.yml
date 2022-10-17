@@ -1,0 +1,33 @@
+---
+
+# - name: Apply krb5
+#   ansible.builtin.template:
+#     src: krb5.conf.j2
+#     dest: /etc/krb5.conf
+
+- name: Create Samba FileServer Container
+  community.docker.docker_container:
+    name: samba-fs
+    image: "{{ SAMBA_IMAGE }}"
+    state: started
+    recreate: yes
+    restart_policy: always
+    network_mode: host
+    privileged: yes
+    hostname: "{{ inventory_hostname }}.{{ SAMBA_DC_REALM }}"
+    env:
+      SAMBA_DC_REALM: "{{ SAMBA_DC_REALM }}"
+      SAMBA_DC_ADMIN_PASSWD: "{{ SAMBA_DC_ADMIN_PASSWD }}"
+      SAMBA_DC_ACTION: member
+      SAMBA_DC_DOMAIN: "{{ SAMBA_DC_DOMAIN }}"
+      SAMBA_INTERFACE: "{{ ansible_default_ipv4.interface }}"
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - "{{ SAMBA_DIR_PATH }}/domain:/var/lib/samba"
+      - "{{ SAMBA_DIR_PATH }}/config:/etc/samba"
+      - "{{ SAMBA_DIR_PATH }}/logs:/var/log/samba"
+      - "{{ FILESERVER.SHARE_PATH }}:/samba/shares"
+
+- name: Wait Samba be ready
+  ansible.builtin.wait_for:
+    port: 445

@@ -1,4 +1,31 @@
 ---
 
-- name: Samba | Install
-  include_tasks: install.yml
+- name: Check if samba-pdc exist
+  community.docker.docker_container_info:
+    name: samba-pdc
+  register: container_check_pdc
+  when: inventory_hostname in groups['pdc']
+
+- name: Check if samba-pdc exist
+  community.docker.docker_container_info:
+    name: samba-dc
+  register: container_check_dc
+  when: inventory_hostname in groups['dc']
+
+- name: Check if samba-fs exist
+  community.docker.docker_container_info:
+    name: samba-fs
+  register: container_check_fs
+  when: inventory_hostname in groups['fileserver']
+
+- name: Samba | Install | PDC
+  ansible.builtin.include_tasks: pdc.yml
+  when: inventory_hostname in groups['pdc'] and not container_check_pdc.exists
+
+- name: Samba | Install | DC
+  ansible.builtin.include_tasks: dc.yml
+  when: inventory_hostname in groups['dc'] and not container_check_dc.exists
+
+- name: Samba | Install | FileServer
+  ansible.builtin.include_tasks: fs.yml
+  when: inventory_hostname in groups['fileserver'] and not container_check_fs.exists

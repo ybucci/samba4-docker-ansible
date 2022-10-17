@@ -1,0 +1,19 @@
+---
+- ansible.builtin.set_fact:
+    distribution: "{{ hostvars[inventory_hostname].ansible_facts.distribution }}"
+    release: "{{ hostvars[inventory_hostname].ansible_facts.distribution_major_version }}"
+
+- name: Samba | Addons | Backup
+  ansible.builtin.include_tasks: backup.yml
+
+- name: Samba | Addons | Veeam Backup
+  ansible.builtin.include_tasks: fix_veeam_rhel8.yml
+  when: distribution == "OracleLinux" and SAMBA_VEEAM_BACKUP.ENABLED
+
+- name: Samba | Addons | Veeam Backup
+  ansible.builtin.include_tasks: backup-veeam.yml
+  when: inventory_hostname in groups['fileserver'] and SAMBA_VEEAM_BACKUP.ENABLED
+
+- name: Samba | Addons | Veeam Backup
+  ansible.builtin.include_tasks: backup-veeam.yml
+  when: inventory_hostname not in groups['fileserver'] and SAMBA_VEEAM_BACKUP.ENABLED and FILESERVER.ENABLE_FS_ON_DC

@@ -1,0 +1,28 @@
+search {{ SAMBA_DC_REALM }}
+{% if inventory_hostname in groups['pdc'] %}
+{% for host in groups['pdc'] %}
+nameserver {{ hostvars[host].ansible_host }}
+{% endfor %}
+{% endif %}
+{% if inventory_hostname in groups['dc'] %}
+{% if not idmap_file.stat.exists %}
+{% for host in groups['pdc'] %}
+nameserver {{ hostvars[host].ansible_host }}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% if inventory_hostname in groups['dc'] %}
+{% if idmap_file.stat.exists %}
+{% for host in groups['dc'] %}
+nameserver {{ hostvars[host].ansible_host }}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% if inventory_hostname in groups['fileserver'] %}
+{% for host in groups['pdc'] %}
+nameserver {{ hostvars[host].ansible_host }}
+{% endfor %}
+{% for host in groups['dc'] %}
+nameserver {{ hostvars[host].ansible_host }}
+{% endfor %}
+{% endif %}

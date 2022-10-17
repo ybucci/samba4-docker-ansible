@@ -1,0 +1,54 @@
+
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ SAMBA_VEEAM_BACKUP.BACKUP_LOCATION }}"
+    state: directory
+
+- name: Touch Veeam Eula
+  ansible.builtin.shell: touch /usr/share/doc/veeam/EULA && touch /usr/share/doc/veeam/3rdPartyNotices.txt
+
+- name: Accept Veeam Agreement
+  ansible.builtin.shell: veeamconfig agreement acceptEula && veeamconfig agreement acceptThirdPartyLicenses
+
+- name: Check If Veeam Repo already exist
+  ansible.builtin.shell: |
+    CHECK_VEEAM=$(veeamconfig repository list | grep "{{ SAMBA_VEEAM_BACKUP.BACKUP_LOCATION }}")
+    if (exit $?)
+    then
+        echo True
+    else
+        echo False
+    fi
+  register: check_veeam
+
+- name: Create Veeam Repository
+  ansible.builtin.shell: veeamconfig repository create --name Local_Driver --location local
+  when: check_veeam.stdout == "False"
+
+- name: Copy backup xml template
+  ansible.builtin.template:
+    src: veeam_template.xml.j2
+    dest: "/tmp/veeam_template.xml"
+  when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
+
+- name: Copy email report html
+  ansible.builtin.copy:
+    src: vee_mail_template.html
+    dest: "/etc/veeam/vee_mail_template.html"
+  when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
+
+- name: Copy script config email report
+  ansible.builtin.template:
+    src: vee-mail.config.j2
+    dest: "/etc/veeam/vee-mail.config"
+  when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
+
+- name: Copy script email report
+  ansible.builtin.template:
+    src: vee-mail.sh.j2
+    dest: "/etc/veeam/vee-mail.sh"
+    mode: u=rwx,g=rwx,o=x
+  when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
+
+- name: Import backup template
+  ansible.builtin.shell: veeamconfig config import --file /tmp/veeam_template.xml --force

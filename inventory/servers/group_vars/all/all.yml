@@ -1,24 +1,20 @@
 ---
 
 # Image who will be used
-SAMBA_IMAGE: yuribucci/samba4-dc:1.0.0_4.15.6
+SAMBA_IMAGE: ybucci/samba4-ad:1.0.0_4.17.0
 
-SAMBA_IMAGE_FILESERVER: yuribucci/samba4-member:1.0.0_4.15.6
+# All persistent files of samba
+SAMBA_DIR_PATH: /Samba
 
 # Directory of mounting shares
 SAMBA_SHARE: /Servidor
 
-# Domain
+# Domain Configurations
 SAMBA_DC_REALM: "contoso.local"
 SAMBA_DC_DOMAIN: "CONTOSO"
 
 # Administrator Password
 SAMBA_DC_ADMIN_PASSWD: 'Password1!'
-
-# Use optionals Recyce, Home User or Public Dirs
-SAMBA_RECYCLE: true
-SAMBA_HOME_USER: true
-SAMBA_PUBLIC: true
 
 # The password complexity (on | off) | Default is 'on'
 SAMBA_PWD_COMPLEXITY: "off"
@@ -41,6 +37,25 @@ SAMBA_ACC_LOCKOUT_DURATION: "30"
 # The number of bad password attempts allowed before locking out the account <integer> | Default is 0 (never lock out).
 SAMBA_ACC_LOCKOUT_THRESHOLD: "0"
 
+# Change the hostnames based in hosts.ini file
+CHANGE_HOSTNAME: true
+
+# Input your timezone
+TIMEZONE: "America/Sao_Paulo"
+
+# Enable or disable audit
+AUDIT:
+  ENABLE: true
+
+# FileServer Configurations
+FILESERVER:
+  # Enable FileServer on DC, default is false
+  ENABLE_FS_ON_DC: false
+  SHARE_PATH: /Servidor
+  ENABLE_RECYCLE_SHARE: true
+  ENABLE_PUBLIC_SHARE: true
+  ENABLE_HOME_SHARE: true
+
 # Directory where backups will be saved (Only Domain Backup)
 SAMBA_BACKUP_DIR: /Servidor/Backup
 
@@ -56,8 +71,8 @@ SAMBA_VEEAM_BACKUP:
     EMAIL_FROM: 'email@gmail.com'
     EMAIL_TO: 'email@gmail.com'
     EMAIL_PASSWORD: 'YOUR_PASSWORD'
-  # ATENTION! BACKUP LOCATION CANNOT BE ON THE SANE DISK
-  BACKUP_LOCATION: '/boot'
+  # ATENTION! BACKUP LOCATION CANNOT BE ON THE SAME DISK
+  BACKUP_LOCATION: '/Backups'
   # Backup retention in days
   BACKUP_RETENTION: 7
   ENCRYPTION:
@@ -86,11 +101,3 @@ SAMBA_VEEAM_BACKUP:
       FRIDAY: false
       SATURDAY: false
       SUNDAY: true
-
-
-
-      
-  
-
-  
-  

@@ -4,19 +4,19 @@
 
 - name: Create Home Users Directory
   file:
-    path: "{{ SAMBA_SHARE }}/Users"
+    path: "{{ FILESERVER.SHARE_PATH }}/Users"
     state: directory
   when: SAMBA_HOME_USER is defined
 
 - name: Create Public Directory
   file:
-    path: "{{ SAMBA_SHARE }}/Public"
+    path: "{{ FILESERVER.SHARE_PATH }}/Public"
     state: directory
   when: SAMBA_PUBLIC is defined
 
 - name: Create Recycle Directory
   file:
-    path: "{{ SAMBA_SHARE }}/Recycle"
+    path: "{{ FILESERVER.SHARE_PATH }}/Recycle"
     state: directory
   when: SAMBA_RECYCLE is defined
 

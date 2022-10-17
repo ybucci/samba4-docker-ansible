@@ -1,0 +1,39 @@
+#!/bin/bash
+
+BACKUP_LOCATION={{ SAMBA_BACKUP_DIR }}
+ETC_SAMBA_PATH={{ SAMBA_DIR_PATH }}/config
+DOMAIN_SAMBA_PATH={{ SAMBA_DIR_PATH }}/domain
+SYSVOL_DOMAIN_PATH={{ SAMBA_DIR_PATH }}/sysvol
+BACKUP_RETENTION_DAYS=90
+WHEN=`date +%Y-%m-%d`   # ISO 8601 standard date.
+DAYS=90 # Periodo de retenção do backup
+{% if inventory_hostname in groups['dc'] %}
+CONTAINER_NAME=samba-dc
+{% endif %}
+{% if inventory_hostname in groups['pdc'] %}
+CONTAINER_NAME=samba-pdc
+{% endif %}
+{% if inventory_hostname in groups['fileserver'] %}
+CONTAINER_NAME=samba-fs
+{% endif %}
+
+{% if inventory_hostname in groups['pdc'] or inventory_hostname in groups['dc']%}
+samba-tool ntacl sysvolreset > /dev/null 2>&1
+samba-tool dbcheck --cross-ncs --fix --yes > /dev/null 2>&1
+samba-tool dbcheck --reindex > /dev/null 2>&1
+samba_dnsupdate --all-names --verbose > /dev/null 2>&1
+{% endif %}
+
+docker stop ${CONTAINER_NAME} > /dev/null 2>&1
+
+find $DOMAIN_SAMBA_PATH -name "*.ldb.bak" -exec rm {} \;
+
+tar cjf ${BACKUP_LOCATION}/samba4_config-${WHEN}.tar.bz2 "${ETC_SAMBA_PATH}" --xattrs --xattrs-include='*' > /dev/null 2>&1
+tar cjf ${BACKUP_LOCATION}/samba4_domain-${WHEN}.tar.bz2 "${DOMAIN_SAMBA_PATH}" --xattrs --xattrs-include='*' > /dev/null 2>&1
+{% if inventory_hostname in groups['pdc'] or inventory_hostname in groups['dc']%}
+tar cjf ${BACKUP_LOCATION}/samba4_sysvol-${WHEN}.tar.bz2 "${SYSVOL_DOMAIN_PATH}" --xattrs --xattrs-include='*' > /dev/null 2>&1
+{% endif %}
+
+docker start ${CONTAINER_NAME} > /dev/null 2>&1
+
+find $BACKUP_LOCATION -name "samba4_*bz2" -mtime +$DAYS -exec rm  {} \;
