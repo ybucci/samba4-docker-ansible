@@ -101,5 +101,3 @@ SAMBA_VEEAM_BACKUP:
       FRIDAY: false
       SATURDAY: false
       SUNDAY: true
-  
-  
