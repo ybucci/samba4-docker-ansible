@@ -1,4 +1,8 @@
 ---
+- name: Check if domain already provisioned
+  ansible.builtin.stat:
+    path: "{{ SAMBA_DIR_PATH }}/domain/private/idmap.ldb"
+  register: idmap_file
 
 - name: Create Samba DC Container
   community.docker.docker_container:
@@ -32,20 +36,24 @@
   community.docker.docker_container:
     name: samba-dc
     state: stopped
+  when: not idmap_file.stat.exists
 
 - name: Copy idpmap to DCs
   ansible.builtin.copy: 
     src: buffer/idmap.ldb.bak 
     dest: "{{ SAMBA_DIR_PATH }}/domain/private/idmap.ldb"
+  when: not idmap_file.stat.exists
 
 - name: Started Samba DC
   community.docker.docker_container:
     name: samba-dc
     state: started
+  when: not idmap_file.stat.exists
 
 - name: Wait Samba be ready
   ansible.builtin.wait_for:
     port: 445
+  when: not idmap_file.stat.exists
 
 - name: Force update DNS
   community.docker.docker_container_exec:

@@ -30,6 +30,7 @@
           - zip 
           - unzip
           - oracle-gluster-release-el8
+          - tdb-tools
         state: present
 
     - name: Enable Docker Repo
@@ -63,6 +64,33 @@
     - debug:
         msg: "Restarting loop until all updates installed"
     - include_tasks: oracle8.yml
+
+- name: Enable Epel Repo
+  ansible.builtin.shell: |
+    tee /etc/yum.repos.d/ol8-epel.repo<<EOF
+    [ol8_developer_EPEL]
+    name= Oracle Linux \$releasever EPEL (\$basearch)
+    baseurl=https://yum.oracle.com/repo/OracleLinux/OL8/developer/EPEL/\$basearch/
+    gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
+    gpgcheck=0
+    enabled=1
+    EOF
+  when: SAMBA_VEEAM_BACKUP.ENABLED
+
+- name: Import Veeam Repository
+  ansible.builtin.dnf:
+    name: 'https://download2.veeam.com/veeam-release-el8-1.0.8-1.x86_64.rpm'
+    state: present
+    disable_gpg_check: yes
+  when: SAMBA_VEEAM_BACKUP.ENABLED
+
+- name: Install Veeam Backup Agent
+  ansible.builtin.dnf:
+    name:
+      - veeam-nosnap
+      - sendemail
+    state: present
+  when: SAMBA_VEEAM_BACKUP.ENABLED
 
 - name: Enable Docker systemd
   systemd:

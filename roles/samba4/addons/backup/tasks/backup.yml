@@ -1,0 +1,10 @@
+- name: Create Backup Folder
+  ansible.builtin.file:
+    path: "{{ SAMBA_BACKUP_DIR }}"
+    state: directory
+
+- name: Create Backup Script
+  ansible.builtin.template:
+    src: samba_backup.sh.j2
+    dest: "/usr/sbin/samba_backup.sh"
+    mode: u=rwx,g=rwx,o=rx

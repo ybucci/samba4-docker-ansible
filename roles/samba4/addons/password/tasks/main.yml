@@ -1,0 +1,12 @@
+---
+
+- name: Configure Password Settings
+  ansible.builtin.shell: |
+    samba-tool domain passwordsettings set --complexity="{{ SAMBA_PWD_COMPLEXITY }}"
+    samba-tool domain passwordsettings set --history-length="{{ SAMBA_PWD_HISTORY_LENGHT }}"
+    samba-tool domain passwordsettings set --min-pwd-length="{{ SAMBA_PWD_MIN_LENGHT }}"
+    samba-tool domain passwordsettings set --min-pwd-age="{{ SAMBA_PWD_MIN_AGE }}"
+    samba-tool domain passwordsettings set --max-pwd-age="{{ SAMBA_PWD_MAX_AGE }}"
+    samba-tool domain passwordsettings set --account-lockout-duration="{{ SAMBA_ACC_LOCKOUT_DURATION }}"
+    samba-tool domain passwordsettings set --account-lockout-threshold="{{ SAMBA_ACC_LOCKOUT_THRESHOLD }}"
+  when: inventory_hostname in groups['pdc']

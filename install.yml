@@ -64,20 +64,31 @@
 - hosts: all
   gather_facts: yes
   tasks:
-    - name: Add samba-tool on host
-      shell: echo 'docker exec -i samba-pdc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+
+    - name: Add samba-tool on PDC
+      ansible.builtin.shell: echo 'docker exec -i samba-pdc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
       when: inventory_hostname in groups['pdc']
-      tags: addons
+      tags: [ 'fileserver', 'reverse_dns', 'password', 'addons' ]
 
-    - name: Add samba-tool on host
-      shell: echo 'docker exec -i samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+    - name: Add samba_dnsupdate on PDC
+      ansible.builtin.shell: echo 'docker exec -i samba-pdc samba_dnsupdate $*' > /usr/sbin/samba_dnsupdate && chmod +x /usr/sbin/samba_dnsupdate
+      when: inventory_hostname in groups['pdc']
+      tags: [ 'fileserver', 'reverse_dns', 'password', 'addons' ]
+
+    - name: Add samba-tool on DC
+      ansible.builtin.shell: echo 'docker exec -i samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
       when: inventory_hostname in groups['dc']
-      tags: addons
+      tags: [ 'fileserver', 'reverse_dns', 'password', 'addons' ]
+
+    - name: Add samba_dnsupdate on DC
+      ansible.builtin.shell: echo 'docker exec -i samba-dc samba_dnsupdate $*' > /usr/sbin/samba_dnsupdate && chmod +x /usr/sbin/samba_dnsupdate
+      when: inventory_hostname in groups['dc']
+      tags: [ 'fileserver', 'reverse_dns', 'password', 'addons' ]
 
     - name: Add samba-tool on host
-      shell: echo 'docker exec -i samba-fs samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
+      ansible.builtin.shell: echo 'docker exec -i samba-fs samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
       when: inventory_hostname in groups['fileserver']
-      tags: addons   
+      tags: [ 'fileserver', 'reverse_dns', 'password', 'addons' ]
 
 - hosts: all
   gather_facts: yes
@@ -86,61 +97,7 @@
     - { role: samba4/restart, tags: [ 'restart' ] }
     - { role: samba4/fileserver, tags: [ 'fileserver' ] }
     - { role: samba4/restart, tags: [ 'restart' ] }
-  
-
-# - hosts: pdc:dc
-#   gather_facts: yes
-#   roles:    
-#     - { role: samba4/fileserver, tags: [ 'fileserver' ] }
-
-# - hosts: all
-#   gather_facts: yes
-#   roles:
-#     - { role: samba4/addons, tags: addons }
-
-#   tasks:
-#     - name: Add samba-tool on host
-#       shell: echo 'docker exec -it samba-pdc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
-#       when: inventory_hostname in groups['pdc']
-#       tags: addons
-
-#     - name: Add samba-tool on host
-#       shell: echo 'docker exec -i samba-dc samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
-#       when: inventory_hostname in groups['dc']
-#       tags: addons
-
-#     - name: Add samba-tool on host
-#       shell: echo 'docker exec -i samba-fs samba-tool $*' > /usr/sbin/samba-tool && chmod +x /usr/sbin/samba-tool
-#       when: inventory_hostname in groups['fileserver']
-#       tags: addons      
-
-
-# - hosts: fileserver
-#   gather_facts: yes
-#   roles:
-#     - { role: samba4/fileserver/member, tags: [ 'member', 'memberfs' ] }
-
-# - { role: samba4/fileserver/dc, tags: [ 'fileserver', 'dc' ] }
-
-# - hosts: fileserver
-#   gather_facts: yes
-#   roles:
-#     - { role: samba4/fileserver/member_dirs, tags: [ 'member', 'member_dirs' ] }
-
-# - hosts: pdc
-#   gather_facts: yes
-#   tasks:
-#     - name: Update DNS
-#       shell: "samba_dnsupdate --all-names --verbose"
-
-
-# - hosts: all
-#   gather_facts: yes
-#   roles:
-#     - { role: samba4/audit, tags: [ 'audit', 'pdc', 'dc', 'member' ] }
-
-# - hosts: pdc
-#   gather_facts: yes
-#   roles:
-#     - { role: samba4/configuration/dns, tags: [ 'configs_dns', 'pdc' ] }
-#     - { role: samba4/configuration/group_policies, tags: [ 'gpo', 'pdc' ] }
+    - { role: samba4/addons/reverse_dns, tags: [ 'reverse_dns', 'addons' ] }
+    - { role: samba4/addons/password, tags: [ 'password', 'addons' ] }
+    - { role: samba4/addons/backup, tags: [ 'backup', 'addons' ] }
+    - { role: samba4/addons/samba_tool, tags: [ 'samba_tool', 'fileserver', 'reverse_dns', 'password', 'addons' ] }

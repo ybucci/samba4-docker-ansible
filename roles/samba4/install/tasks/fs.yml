@@ -1,9 +1,9 @@
 ---
 
-- name: Apply krb5
-  ansible.builtin.template:
-    src: krb5.conf.j2
-    dest: /etc/krb5.conf
+# - name: Apply krb5
+#   ansible.builtin.template:
+#     src: krb5.conf.j2
+#     dest: /etc/krb5.conf
 
 - name: Create Samba FileServer Container
   community.docker.docker_container:
@@ -23,7 +23,7 @@
       SAMBA_INTERFACE: "{{ ansible_default_ipv4.interface }}"
     volumes:
       - /etc/timezone:/etc/timezone:ro
-      - "{{ SAMBA_DIR_PATH }}/domain:/var/lib/samba/private"
+      - "{{ SAMBA_DIR_PATH }}/domain:/var/lib/samba"
       - "{{ SAMBA_DIR_PATH }}/config:/etc/samba"
       - "{{ SAMBA_DIR_PATH }}/logs:/var/log/samba"
       - "{{ FILESERVER.SHARE_PATH }}:/samba/shares"
