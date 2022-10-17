@@ -1,9 +1,9 @@
 ---
 
-# - hosts: all
-#   gather_facts: yes
-#   roles:
-#     - { role: bootstrap, tags: [ 'install', 'bootstrap', 'install-pdc', 'install-dc', 'install-fileserver' ] }
+- hosts: all
+  gather_facts: yes
+  roles:
+    - { role: bootstrap, tags: [ 'install', 'bootstrap', 'install-pdc', 'install-dc', 'install-fileserver' ] }
 
 - hosts: all
   gather_facts: yes

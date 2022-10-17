@@ -88,7 +88,6 @@
   ansible.builtin.dnf:
     name:
       - veeam-nosnap
-      - sendemail
     state: present
   when: SAMBA_VEEAM_BACKUP.ENABLED
 

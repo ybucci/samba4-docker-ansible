@@ -3,7 +3,7 @@
 
 # Quantidade de máquinas que irão subir
 NODE_COUNT = 3
-BOX_IMAGE = "generic/ubuntu2204"
+BOX_IMAGE = "generic/oracle8"
 VAGRANT_EXPERIMENTAL="disks"
 
 Vagrant.configure("2") do |config|
