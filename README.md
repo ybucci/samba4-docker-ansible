@@ -1,4 +1,4 @@
-## If you like it, please support our project
+## If you like it, please support my project
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate?business=EY4D8EFD6BLMJ&no_recurring=0&item_name=Projeto+Open+Source&currency_code=BRL)
 <p></p>
@@ -11,40 +11,49 @@
 
 
 
-This Ansible automation will install and configure multiple Domain Controllers (DCs) using technologies like Samba4, Ansible, Docker, GlusteFS and Veeam.
+This Ansible automation will install and configure multiple Domain Controllers (DCs) using technologies like Samba4, Bind9, Docker, GlusterFS and Veeam.
 
 ## Resources
 
-#### High Avaibility
+- **High Avaibility**
 - **Sysvol clusterized with GlusterFS.**
 - **Multiple DCs**
 - **Multiple FileServers**
-
-#### Backup
-
+- **Audit**
+- **Bind9 DNS**
 - **Custom script of Domain Controller Backup**
 - **Veeam Backup Linux Agent Free with e-mail html reports**
 
 ## Supported Linux Distributions
 
-- **Ubuntu 21.10**
+- **Ubuntu (21.10 / 22.04)**
+- **Oracle Linux 8**
 
 ## To be added
 - **Other distribuitions (Debian, CentOS/RHEL, Fedora)**
-- **???**
+- **Advanced Security Settings**
 
 ## How to
 
 ### Requirements
 
+##### APT
 ```
-$ sudo apt-get update
-$ sudo apt-get install python3-pip git sshpass -y
-$ pip3 install pip --upgrade
-$ git clone https://github.com/ybucci/samba4-docker-ansible.git
-$ cd samba4-docker-ansible
-$ pip3 install -r requirements.txt
-$ ansible-galaxy collection install -r requirements.yml
+apt-get update
+apt-get install python3-pip git sshpass -y
+```
+##### YUM
+```
+yum install python39-pip git sshpass -y
+```
+
+###
+```
+pip install pip --upgrade
+git clone https://github.com/ybucci/samba4-docker-ansible.git
+cd samba4-docker-ansible
+pip install ansible
+ansible-galaxy collection install -r requirements.yml
 ```
 ### Edit inventory and hosts
 ```
@@ -57,8 +66,14 @@ inventory/servers/group_vars/all/all.yml
 $ ansible-playbook --become -i inventory/servers/hosts.ini install.yml
 ```
 
+### Domain Controller Backup
+```
+/usr/sbin/samba_backup.sh
+```
+
 ### Backup Veeam
 ```
 # Access to management console of Veeam backup
 $ veeamconfig ui
 ```
+

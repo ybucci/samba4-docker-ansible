@@ -1,5 +1,15 @@
 ---
 
+- ansible.builtin.set_fact:
+    distribution: "{{ hostvars[inventory_hostname].ansible_facts.distribution }}"
+
+- name: Disable systemd-resolved
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    enabled: no
+    state: stopped
+  when: distribution == "Ubuntu"
+
 - name: Check if domain already provisioned
   ansible.builtin.stat:
     path: "{{ SAMBA_DIR_PATH }}/domain/private/idmap.ldb"

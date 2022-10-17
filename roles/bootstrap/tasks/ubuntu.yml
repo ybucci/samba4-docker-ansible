@@ -1,27 +1,59 @@
 ---
 
-- name: Update apt list
-  apt:
-    update_cache: yes
+- name: 'boostrap ubuntu'
+  block:
+    - name: Set the retry count
+      ansible.builtin.set_fact:
+        retry_count: "{{ 0 if retry_count is undefined else retry_count|int + 1 }}"
 
-- name: Upgrade all packages to the latest version
-  apt:
-    name: "*"
-    state: latest
-  async: 5000
-  poll: 0
-  register: upgrade
-  
-- name: Upgrade all packages to the latest version (Please wait, this will take a while...)
-  async_status:
-    jid: "{{ upgrade.ansible_job_id }}"
-  register: job_result
-  until: job_result.finished
-  retries: 2000
-  delay: 10     
+    - name: Upgrade all packages to the latest version
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        update_cache: yes
+      register: updates
+
+    - name: Disable firewall ufw
+      ansible.builtin.systemd:
+        name: ufw
+        enabled: no
+        state: stopped
+      ignore_errors: true
+
+    - name: Disable AppArmor (1/2)
+      ansible.builtin.systemd:
+        name: apparmor.service
+        enabled: no
+        state: stopped
+      register: apparmor_disabled
+
+    - name: Disable AppArmor (2/2)
+      ansible.builtin.shell: aa-teardown
+
+    - name: Reboot host and wait for it to restart
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Ansible"
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: whoami
+      when: updates.changed
+
+    - name: Check Retry
+      ansible.builtin.shell: echo "Check Retry"
+      failed_when: apparmor_disabled.changed or updates.changed
+
+  rescue:
+    - fail:
+        msg: Ended after 5 retries
+      when: retry_count|int == 5
+    - debug:
+        msg: "Restarting loop until all updates installed"
+    - include_tasks: ubuntu.yml
 
 - name: Install Required Packages
-  apt:
+  ansible.builtin.apt:
     name:
       - glusterfs-server
       - glusterfs-client
@@ -35,25 +67,14 @@
     update_cache: yes
 
 - name: Install Veeam Backup Agent Repository
-  apt:
-    deb: https://download2.veeam.com/veeam-release-deb_1.0.8_amd64.deb
-  when: SAMBA_VEEAM_BACKUP.ENABLED
-
-- name: Update apt list
-  apt:
-    update_cache: yes
-  when: SAMBA_VEEAM_BACKUP.ENABLED
-
-- name: Install Veeam Backup Agent Repository
-  apt:
+  ansible.builtin.apt:
     deb: https://download2.veeam.com/veeam-release-deb_1.0.8_amd64.deb
   when: SAMBA_VEEAM_BACKUP.ENABLED
 
 - name: Install Veeam Backup Agent
-  apt:
+  ansible.builtin.apt:
     name:
-      - veeam
-      - sendemail
+      - veeam-nosnap
       - libnet-ssleay-perl
       - libcrypt-ssleay-perl
       - libssl-dev
@@ -62,67 +83,38 @@
     update_cache: yes
   when: SAMBA_VEEAM_BACKUP.ENABLED
 
-- name: Install Docker
-  apt:
-    name:
-      - docker.io
-      - docker-compose
+- name: Add Docker GPG apt Key
+  ansible.builtin.apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
     state: present
-    update_cache: yes
+
+- name: Add Docker Repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://download.docker.com/linux/ubuntu {{ release_name }} stable"
+    state: present
+
+- name: Install docker-ce
+  ansible.builtin.apt:
+    name: docker-ce
+    state: latest
+    update_cache: true
 
 - name: Enable Docker systemd
-  systemd:
+  ansible.builtin.systemd:
     name: docker
     enabled: yes
     state: started
 
 - name: Enable GlusterFS systemd
-  systemd:
+  ansible.builtin.systemd:
     name: glusterd
     enabled: yes
     state: started
 
-- name: Disable firewall ufw
-  systemd:
-    name: ufw
-    enabled: no
-    state: stopped
-  ignore_errors: true
-
-- name: Disable AppArmor
-  systemd:
-    name: apparmor.service
-    enabled: no
-    state: stopped
-  register: disabled
-  when: distribution == "Ubuntu"
-  ignore_errors: true
-
-- name: Disable AppArmor
-  shell: aa-teardown
-  when: distribution == "Ubuntu"
-  ignore_errors: true
-
-- name: Disable systemd-resolved
-  systemd:
-    name: systemd-resolved
-    enabled: no
-    state: stopped
-
-- name: Reboot host and wait for it to restart
-  reboot:
-    msg: "Reboot initiated by Ansible"
-    connect_timeout: 5
-    reboot_timeout: 600
-    pre_reboot_delay: 0
-    post_reboot_delay: 30
-    test_command: whoami
-  when: disabled.changed
-
 - name: Remove useless packages from the cache
-  apt:
+  ansible.builtin.apt:
     autoclean: yes
 
 - name: Remove dependencies that are no longer required
-  apt:
+  ansible.builtin.apt:
     autoremove: yes

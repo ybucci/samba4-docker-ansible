@@ -1,3 +1,6 @@
 buffer/idmap*
 Vagrant/.vagrant/*
 Vagrant/.vagrant
+Vagrant/extra_storage2.vdi
+Vagrant/extra_storage3.vdi
+Vagrant/extra_storage4.vdi
