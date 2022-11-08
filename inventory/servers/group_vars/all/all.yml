@@ -1,7 +1,7 @@
 ---
 
 # Image who will be used
-SAMBA_IMAGE: ybucci/samba4-ad:1.0.0_4.17.0
+SAMBA_IMAGE: ybucci/samba4-ad:1.0.0_4.17.2
 
 # All persistent files of samba
 SAMBA_DIR_PATH: /Samba
