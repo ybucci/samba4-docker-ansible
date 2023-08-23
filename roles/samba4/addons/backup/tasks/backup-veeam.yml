@@ -14,7 +14,7 @@
   ansible.builtin.shell: |
     veeamconfig repository list | grep "{{ SAMBA_VEEAM_BACKUP.BACKUP_LOCATION }}"
     retVal=$?
-    if [ $retVal -eq 0 ]; then
+    if [ $retVal -eq 0 ];
     then
         echo "True"
     else
