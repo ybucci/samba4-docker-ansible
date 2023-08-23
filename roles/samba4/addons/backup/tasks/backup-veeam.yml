@@ -12,18 +12,20 @@
 
 - name: Check If Veeam Repo already exist
   ansible.builtin.shell: |
-    CHECK_VEEAM=$(veeamconfig repository list | grep "{{ SAMBA_VEEAM_BACKUP.BACKUP_LOCATION }}")
-    if (exit $?)
+    veeamconfig repository list | grep "{{ SAMBA_VEEAM_BACKUP.BACKUP_LOCATION }}"
+    retVal=$?
+    if [ $retVal -eq 0 ]; then
     then
-        echo True
+        echo "True"
     else
-        echo False
+        echo "False"
     fi
   register: check_veeam
 
 - name: Create Veeam Repository
   ansible.builtin.shell: veeamconfig repository create --name Local_Driver --location local
   when: check_veeam.stdout == "False"
+  ignore_errors: true
 
 - name: Copy backup xml template
   ansible.builtin.template:
