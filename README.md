@@ -44,15 +44,13 @@ apt-get install python3-pip git sshpass -y
 ```
 ##### YUM
 ```
-yum install python39-pip git sshpass -y
+yum install python3-pip git sshpass -y
 ```
 
 ###
 ```
-pip install pip --upgrade
-git clone https://github.com/ybucci/samba4-docker-ansible.git
-cd samba4-docker-ansible
-pip install ansible
+pip3 install pip --upgrade
+pip3 install ansible
 ansible-galaxy collection install -r requirements.yml
 ```
 ### Edit inventory and hosts
