@@ -2,8 +2,8 @@
 # vi: set ft=ruby :
 
 # Quantidade de máquinas que irão subir
-NODE_COUNT = 3
-BOX_IMAGE = "generic/ubuntu2204"
+NODE_COUNT = 1
+BOX_IMAGE = "generic/oracle8"
 VAGRANT_EXPERIMENTAL="disks"
 
 Vagrant.configure("2") do |config|
@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
       subconfig.vm.box = BOX_IMAGE
       subconfig.vm.hostname = "node#{i}"
       # Range de IP a ser utilizado e Interface de rede
-      subconfig.vm.network :public_network, ip: "192.168.18.#{i + 129}", bridge: "Realtek Gaming GbE Family Controller"
+      subconfig.vm.network :public_network, ip: "192.168.15.#{i + 129}", bridge: "Intel(R) Wi-Fi 6 AX200 160MHz"
       subconfig.vm.disk :disk, size: "50GB", name: "extra_storage#{i + 1}"
     end
     config.vm.provider "virtualbox" do |v|
@@ -25,7 +25,6 @@ Vagrant.configure("2") do |config|
   # Install avahi on all machines  
   config.vm.provision "shell", inline: <<-SHELL
     # Rota do seu gateway padrão
-    apt-get install net-tools -y
-    route add default gw 192.168.18.1
+    route add default gw 192.168.15.1
   SHELL
 end

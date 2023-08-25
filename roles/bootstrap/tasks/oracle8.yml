@@ -31,10 +31,11 @@
           - unzip
           - oracle-gluster-release-el8
           - tdb-tools
+          - yum-utils
         state: present
 
     - name: Enable Docker Repo
-      ansible.builtin.shell: dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+      ansible.builtin.shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 
     - name: Install Required Packages (2/2)
       ansible.builtin.dnf:
