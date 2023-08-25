@@ -49,7 +49,6 @@ yum install python3-pip git sshpass -y
 
 ###
 ```
-https://github.com/ybucci/samba4-docker-ansible.git
 pip3 install pip --upgrade
 pip3 install ansible
 git clone https://github.com/ybucci/samba4-docker-ansible.git
