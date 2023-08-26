@@ -53,5 +53,5 @@
   when: SAMBA_VEEAM_BACKUP.SEND_EMAIL.ENABLED
 
 - name: Import backup template
-  ansible.builtin.shell: veeamconfig config import --file /tmp/veeam_template.xml --force
+  ansible.builtin.shell: yes | veeamconfig config import --file /tmp/veeam_template.xml --force
   ignore_errors: true
