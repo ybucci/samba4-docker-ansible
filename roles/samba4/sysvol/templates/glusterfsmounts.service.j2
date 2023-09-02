@@ -1,3 +1,14 @@
 [Unit]
-After=glusterd.service
-Wants=glusterd.service
+Description=Glustermounting
+Requires=glusterd.service
+
+[Service]
+Type=simple
+RemainAfterExit=true
+ExecStartPre=/usr/sbin/gluster volume list
+ExecStart=/bin/mount -a -t glusterfs
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
