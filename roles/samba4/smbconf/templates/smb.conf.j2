@@ -22,11 +22,12 @@
         winbind use default domain = yes
         idmap config * : backend = autorid
         idmap config * : range = 10000-9999999
-        {% endif %}
-        {% if not inventory_hostname in groups['pdc'] and not inventory_hostname in groups['dc'] or FILESERVER.ENABLE_FS_ON_DC %}
-        {$ if FILESERVER.ENABLE_ENUM_HIDE $}
-        access based share enum = yes
-        {% endif %}
+        {% endif -%}
+        {% if not inventory_hostname in groups['pdc'] and not inventory_hostname in groups['dc'] or FILESERVER.ENABLE_FS_ON_DC -%}
+        {% if FILESERVER.ENABLE_ENUM_HIDE -%}
+access based share enum = yes
+        {% endif -%}    
+        {% endif %}    
         
 {% if not inventory_hostname in groups['pdc'] and not inventory_hostname in groups['dc'] or FILESERVER.ENABLE_FS_ON_DC %}
 {% if FILESERVER.ENABLE_RECYCLE_SHARE %}
