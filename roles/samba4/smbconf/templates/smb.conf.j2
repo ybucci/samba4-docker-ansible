@@ -23,7 +23,11 @@
         idmap config * : backend = autorid
         idmap config * : range = 10000-9999999
         {% endif %}
-
+        {% if not inventory_hostname in groups['pdc'] and not inventory_hostname in groups['dc'] or FILESERVER.ENABLE_FS_ON_DC %}
+        {$ if FILESERVER.ENABLE_ENUM_HIDE $}
+        access based share enum = yes
+        {% endif %}
+        
 {% if not inventory_hostname in groups['pdc'] and not inventory_hostname in groups['dc'] or FILESERVER.ENABLE_FS_ON_DC %}
 {% if FILESERVER.ENABLE_RECYCLE_SHARE %}
 ################# Recycle #######################
@@ -92,11 +96,17 @@ browseable = no
 [Public]
 path = /samba/shares/Public
 read only = no
+{% if FILESERVER.VETO_FILES.ENABLE %}
+veto files = {{ FILESERVER.VETO_FILES.EXTENSIONS }}
+{% endif %}
 {% endif %}
 
 {% if FILESERVER.ENABLE_HOME_SHARE %}
 [Users]
 path = /samba/shares/Users
 read only = no
+{% if FILESERVER.VETO_FILES.ENABLE %}
+veto files = {{ FILESERVER.VETO_FILES.EXTENSIONS }}
+{% endif %}
 {% endif %}
 {% endif %}

@@ -57,3 +57,22 @@
 - name: Set ACL of Recycle Folder
   ansible.builtin.shell: samba-tool ntacl set "O:LAG:DAD:PAI(A;OICI;0x001f01ff;;;LA)(A;OICI;0x001f01ff;;;DA)(A;OICIIO;0x001f01ff;;;CO)(A;;0x001201bd;;;DU)" /samba/shares/Recycle
   when: FILESERVER.ENABLE_RECYCLE_SHARE
+
+- name: Create Clean Recycle Script
+  ansible.builtin.template:
+    src: samba_clean_recycle.sh.j2
+    dest: "/usr/sbin/samba_clean_recycle"
+    mode: u=rwx,g=rwx,o=rx
+  when: FILESERVER.RECYLE_CLEAN.ENABLE
+
+- name: Create Cronjob of Recycle
+  ansible.builtin.cron:
+    name: "Samba Recycle Clean"
+    state: present
+    minute: "{{ FILESERVER.RECYLE_CLEAN.CRON.HOUR }}"
+    hour: "{{ FILESERVER.RECYLE_CLEAN.CRON.MINUTES }}"
+    day: "{{ FILESERVER.RECYLE_CLEAN.CRON.DAY_MONTH }}"
+    month: "{{ FILESERVER.RECYLE_CLEAN.CRON.MONTH }}"
+    weekday: "{{ FILESERVER.RECYLE_CLEAN.CRON.DAY_WEEK }}"
+    job: 'bash -l /usr/sbin/samba_clean_recycle'
+  when: FILESERVER.RECYLE_CLEAN.ENABLE

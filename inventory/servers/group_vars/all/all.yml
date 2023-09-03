@@ -55,6 +55,20 @@ FILESERVER:
   ENABLE_RECYCLE_SHARE: true
   ENABLE_PUBLIC_SHARE: true
   ENABLE_HOME_SHARE: true
+  ENABLE_ENUM_HIDE : true
+  VETO_FILES:
+    ENABLE: true
+    EXTENSIONS: /*.exe/*.bat/*.cmd
+  RECYLE_CLEAN:
+    ENABLE: true
+    DAYS_TO_REMOVE: 7
+    CRON:
+      HOUR: "*"
+      MINUTES: "0"
+      SECONDS: "*"
+      DAY_MONTH: "*"
+      MONTH: "*"
+      DAY_WEEK: "*"    
 
 # Directory where backups will be saved (Only Domain Backup)
 SAMBA_BACKUP_DIR: /Servidor/Backup
